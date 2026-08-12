@@ -12,6 +12,9 @@ app.use(cors());
 // Serve static frontend files
 app.use(express.static(__dirname));
 
+// MongoDB Connection Debug Check
+console.log("DEBUG - MONGO_URI is:", process.env.MONGO_URI ? "Present and loaded" : "MISSING/UNDEFINED");
+
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/gcse-chemistry';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key_change_me';
