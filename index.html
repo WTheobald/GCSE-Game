@@ -2054,7 +2054,6 @@
             alert('Logged out successfully.');
         }
 
-        // --- ENHANCED FRONTEND SAVING & CLOUD SYNC LOGIC ---
         async function loadGameProgress() {
             if (!sessionStorage.getItem('game_session_active')) {
                 localStorage.removeItem('aqa_chem_quest_save');
@@ -2073,7 +2072,6 @@
                 }
             }
 
-            // If online token exists, pull latest synchronized save state from server
             if (authToken && !authToken.startsWith('local_mock_token_')) {
                 try {
                     const res = await fetch('/api/get-progress', {
@@ -2093,11 +2091,12 @@
             }
         }
 
+        // --- SAVE GAME PROGRESS FUNCTION ---
         async function saveGameProgress() {
-            // 1. Persistent Local Storage Saving
+            // 1. Persistent Local Storage Backup
             localStorage.setItem('aqa_chem_quest_save', JSON.stringify(gameState));
 
-            // 2. Synchronize with Backend Cloud API if authenticated
+            // 2. Synchronize with Backend Cloud API via POST Request if Authenticated
             if (authToken && !authToken.startsWith('local_mock_token_')) {
                 try {
                     await fetch('/api/save-progress', {
@@ -2122,7 +2121,7 @@
             if (!banner) return;
             banner.style.display = 'block';
             banner.style.animation = 'none';
-            banner.offsetHeight; // trigger reflow
+            banner.offsetHeight; 
             banner.style.animation = 'fadeInOut 2s ease';
             setTimeout(() => {
                 banner.style.display = 'none';
