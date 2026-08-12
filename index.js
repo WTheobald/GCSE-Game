@@ -105,7 +105,7 @@ app.get('/api/get-progress', async (req, res) => {
     }
 });
 
-// Save / Update User Game Progress in MongoDB (Handles both /api/update-progress and /api/save-progress)
+// Save / Update User Game Progress in MongoDB
 const handleProgressUpdate = async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
@@ -133,11 +133,9 @@ app.post('/api/update-progress', handleProgressUpdate);
 app.post('/api/save-progress', handleProgressUpdate);
 
 // Fallback to index.html for SPA routing
-app.get('/{*splat}', (req, res) => {
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
