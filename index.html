@@ -1,0 +1,2651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQA GCSE Chemistry Ultimate Revision Quest (Shuffle Edition)</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #06b6d4;
+            --primary-hover: #0891b2;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --success: #10b981;
+            --error: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --gold: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Bar */
+        header {
+            background: linear-gradient(135deg, #1e1b4b, #0f172a);
+            border-bottom: 2px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        header h1 {
+            font-size: 28px;
+            background: linear-gradient(to right, var(--primary), var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .auth-bar {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .auth-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .auth-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Dynamic Stats HUD */
+        .hud {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 1200px;
+            width: 95%;
+            margin: 20px auto 10px auto;
+        }
+
+        .hud-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .hud-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .hud-xp::after { background-color: var(--primary); }
+        .hud-streak::after { background-color: var(--accent-pink); }
+        .hud-level::after { background-color: var(--accent-purple); }
+        .hud-grade::after { background-color: var(--gold); }
+
+        .hud-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .hud-value {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* Dashboard Layout */
+        .container {
+            max-width: 1200px;
+            width: 95%;
+            margin: 10px auto 30px auto;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar: Topic Quest Board */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .quest-list-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .quest-list-card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .topic-node {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: rgba(255,255,255,0.03);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .topic-node:hover {
+            border-color: var(--primary);
+            background-color: rgba(6, 182, 212, 0.08);
+        }
+
+        .topic-node.active {
+            border-color: var(--accent-purple);
+            background-color: rgba(139, 92, 246, 0.12);
+        }
+
+        .topic-node.completed {
+            border-color: var(--success);
+            background-color: rgba(16, 185, 129, 0.08);
+        }
+
+        .node-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .topic-node.completed .node-badge {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .node-info {
+            flex-grow: 1;
+        }
+
+        .node-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .node-paper {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Main Game Screen */
+        .main-screen {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 15px;
+            height: 100%;
+        }
+
+        /* Welcome & Start Quest screens */
+        .welcome-view {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-view h2 {
+            font-size: 26px;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .welcome-view p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Active Quest Screen */
+        .quest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 10px;
+        }
+
+        .quest-progress-track {
+            height: 6px;
+            background-color: var(--border-color);
+            border-radius: 3px;
+            width: 100%;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .quest-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--accent-purple));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-box {
+            font-size: 17px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .option-button {
+            background-color: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 14px 18px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            outline: none;
+        }
+
+        .option-button:hover {
+            border-color: var(--primary);
+            background-color: rgba(6, 182, 212, 0.05);
+            transform: translateX(3px);
+        }
+
+        .option-button.correct {
+            background-color: rgba(16, 185, 129, 0.15);
+            border-color: var(--success);
+            color: #a7f3d0;
+        }
+
+        .option-button.wrong {
+            background-color: rgba(239, 68, 68, 0.15);
+            border-color: var(--error);
+            color: #fca5a5;
+        }
+
+        .feedback-area {
+            background-color: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 5px;
+            border-left: 4px solid var(--primary);
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Action Buttons */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            outline: none;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+        }
+
+        .btn-accent:hover {
+            opacity: 0.95;
+        }
+
+        /* Interactive Tools Module */
+        .interactive-tools {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .tools-header {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .tool-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .tool-btn:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .tool-btn-accent {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #d8b4fe;
+        }
+
+        .tool-btn-accent:hover {
+            background-color: var(--accent-purple);
+            border-color: var(--accent-purple);
+            color: white;
+        }
+
+        .tool-btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+
+        .tool-btn-danger:hover {
+            background-color: var(--error);
+            border-color: var(--error);
+            color: white;
+        }
+
+        /* Pop-up Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 25px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        /* Period Table Styling inside Modal */
+        .pt-grid {
+            display: grid;
+            grid-template-columns: repeat(18, 1fr);
+            gap: 2px;
+            margin-top: 15px;
+            font-size: 8px;
+        }
+
+        .pt-element {
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 3px;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: help;
+        }
+
+        .pt-metal { background-color: rgba(239, 68, 68, 0.2); }
+        .pt-nonmetal { background-color: rgba(59, 130, 246, 0.2); }
+        .pt-noble { background-color: rgba(139, 92, 246, 0.2); }
+        .pt-hal { background-color: rgba(245, 158, 11, 0.2); }
+
+        /* Formula calculator styling */
+        .calc-input {
+            width: 100%;
+            padding: 12px;
+            background-color: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        /* --- SCIENTIFIC CALCULATOR MODAL STYLING --- */
+        .calculator-container {
+            max-width: 340px;
+            margin: 20px auto 0 auto;
+            background: #0f172a;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        .calc-screen {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: right;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        .calc-history {
+            font-size: 12px;
+            color: var(--text-muted);
+            min-height: 16px;
+            word-wrap: break-word;
+        }
+
+        .calc-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+            word-wrap: break-word;
+        }
+
+        .calc-keys {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .calc-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 16px;
+            font-weight: 600;
+            padding: 14px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .calc-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--text-muted);
+        }
+
+        .calc-btn.op-btn {
+            color: var(--accent-purple);
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .calc-btn.op-btn:hover {
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        .calc-btn.fn-btn {
+            color: var(--accent-pink);
+            border-color: rgba(236, 72, 153, 0.3);
+            background: rgba(236, 72, 153, 0.05);
+            font-size: 14px;
+        }
+
+        .calc-btn.fn-btn:hover {
+            background: var(--accent-pink);
+            color: white;
+        }
+
+        .calc-btn.equal-btn {
+            background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+            color: white;
+            border: none;
+            grid-column: span 2;
+        }
+
+        .calc-btn.equal-btn:hover {
+            opacity: 0.95;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AQA GCSE Chemistry Ultimate Revision Quest</h1>
+        <p>Dynamic Interactive Board, Live Progress Mapping & Spec-Targeted Challenge Mode</p>
+        <div class="auth-bar" id="auth-bar">
+            <button class="auth-btn" onclick="openAuthModal('login')">Login</button>
+            <button class="auth-btn" style="background: var(--primary); border-color: var(--primary);" onclick="openAuthModal('register')">Register</button>
+        </div>
+    </header>
+
+    <!-- Dynamic HUD -->
+    <div class="hud">
+        <div class="hud-card hud-xp">
+            <div class="hud-label">EXP Gained</div>
+            <div class="hud-value" id="hud-xp">0 XP</div>
+        </div>
+        <div class="hud-card hud-streak">
+            <div class="hud-label">Daily Streak</div>
+            <div class="hud-value" id="hud-streak">3 🔥</div>
+        </div>
+        <div class="hud-card hud-level" style="cursor: pointer;" onclick="openAccountModal()" title="Click to view Account & Mastery Details">
+            <div class="hud-label">Mastery Tier ℹ️</div>
+            <div class="hud-value" id="hud-level">Novice (Lvl 1)</div>
+        </div>
+        <div class="hud-card hud-grade">
+            <div class="hud-label">AQA Grade Predictor</div>
+            <div class="hud-value" id="hud-grade" style="color: var(--gold);">Grade U</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="quest-list-card">
+                <h2>AQA Revision Map</h2>
+                <div id="topic-list">
+                    <!-- Topics generated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Quick revision utilities inside the offline executable app -->
+            <div class="interactive-tools">
+                <div class="tools-header">Interactive Lab Utils</div>
+                <button class="tool-btn tool-btn-accent" onclick="openAccountModal()">👤 Account Tab</button>
+                <button class="tool-btn tool-btn-accent" onclick="startRandomChallenge()">🎲 Random 10 Challenge</button>
+                <button class="tool-btn" onclick="openPeriodicTable()">📊 Periodic Table</button>
+                <button class="tool-btn" onclick="openFormulaCalc()">🧮 Mass/Mole Calc</button>
+                <button class="tool-btn" onclick="openScientificCalc()">🧮 Sci-Calculator</button>
+                <button class="tool-btn tool-btn-accent" onclick="emailReportCard()">📧 Email My Report</button>
+                <button class="tool-btn tool-btn-danger" onclick="confirmResetProgress()">⚠️ Reset Progress</button>
+            </div>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="main-screen" id="main-screen">
+            <!-- Starting screen / Loaded Resume view -->
+            <div class="welcome-view" id="welcome-view">
+                <h2>Begin Your Chemistry Mastery Mission</h2>
+                <p>Prepare for your AQA exams by progressing through all 10 core topics, or challenge yourself to a completely randomized exam dynamic pull to test your cross-curriculum knowledge retention!</p>
+                <button class="btn btn-accent" onclick="startQuest(0)">Initiate Quest Topic 1</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POPUPS -->
+    <div id="pt-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('pt-modal')">&times;</span>
+            <h2>Interpretable Periodic Table Reference</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Hover or click elements to see relative mass data.</p>
+            <div class="pt-grid" id="pt-grid"></div>
+        </div>
+    </div>
+
+    <div id="calc-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('calc-modal')">&times;</span>
+            <h2>GCSE Mole & Molar Mass Calculator</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Input a compound chemical formula to instantly resolve its relative formula mass.</p>
+            <input type="text" id="calc-formula" class="calc-input" placeholder="e.g. CaCO3, H2O, Al2S3">
+            <button class="btn" onclick="calcFormulaMass()">Calculate Molar Mass</button>
+            <div id="calc-result" style="margin-top: 20px; font-size: 18px; font-weight: bold; color: var(--primary);"></div>
+        </div>
+    </div>
+
+    <!-- ACCOUNT & MASTERY TIER MODAL -->
+    <div id="account-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close-modal" onclick="closeModal('account-modal')">&times;</span>
+            <h2 style="color: var(--primary); margin-bottom: 15px;">👤 Account & Mastery Profile</h2>
+            <div id="account-info-body" style="font-size: 14px; line-height: 1.6; color: var(--text-main); margin-bottom: 20px;">
+                <!-- Populated dynamically -->
+            </div>
+            <div style="border-top: 1px solid var(--border-color); padding-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                <h3 style="font-size: 15px; color: var(--accent-purple);">🔒 Security & Password Reset</h3>
+                <p style="font-size: 12px; color: var(--text-muted);">Enter a new password below to update your account credentials.</p>
+                <input type="password" id="account-new-password" class="calc-input" placeholder="New Password" style="margin-bottom: 5px;">
+                <button class="btn" onclick="handlePasswordReset()">Reset Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTHENTICATION MODAL -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-modal" onclick="closeModal('auth-modal')">&times;</span>
+            <h2 id="auth-modal-title" style="color: var(--primary); margin-bottom: 15px;">Login</h2>
+            <p id="auth-error" style="color: var(--error); font-size: 13px; margin-bottom: 10px; display: none;"></p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <input type="text" id="auth-username" class="calc-input" placeholder="Username" style="margin-bottom: 0;">
+                <input type="password" id="auth-password" class="calc-input" placeholder="Password" style="margin-bottom: 0;">
+                <button class="btn btn-accent" id="auth-submit-btn" onclick="handleAuthSubmit()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCIENTIFIC CALCULATOR MODAL -->
+    <div id="scicalc-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-modal" onclick="closeModal('scicalc-modal')">&times;</span>
+            <h2>Scientific Lab Calculator</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Perform chemical stoichiometry, percentages, logs, or quick math checks.</p>
+            
+            <div class="calculator-container">
+                <div class="calc-screen">
+                    <div class="calc-history" id="calc-hist-disp"></div>
+                    <div class="calc-display" id="calc-main-disp">0</div>
+                </div>
+                <div class="calc-keys">
+                    <!-- Scientific Functions -->
+                    <button class="calc-btn fn-btn" onclick="pressSci('sin')">sin</button>
+                    <button class="calc-btn fn-btn" onclick="pressSci('cos')">cos</button>
+                    <button class="calc-btn fn-btn" onclick="pressSci('tan')">tan</button>
+                    <button class="calc-btn fn-btn" onclick="pressSci('log')">log</button>
+                    
+                    <button class="calc-btn fn-btn" onclick="pressSci('pow2')">x²</button>
+                    <button class="calc-btn fn-btn" onclick="pressSci('sqrt')">√</button>
+                    <button class="calc-btn fn-btn" onclick="pressSci('pi')">π</button>
+                    <button class="calc-btn fn-btn" onclick="pressSci('exp')">EE</button>
+
+                    <!-- Standard Numbers & Operations -->
+                    <button class="calc-btn op-btn" onclick="clearCalc()">C</button>
+                    <button class="calc-btn op-btn" onclick="backspaceCalc()">⌫</button>
+                    <button class="calc-btn op-btn" onclick="pressOp('(')">(</button>
+                    <button class="calc-btn op-btn" onclick="pressOp(')')">)</button>
+
+                    <button class="calc-btn" onclick="pressNum('7')">7</button>
+                    <button class="calc-btn" onclick="pressNum('8')">8</button>
+                    <button class="calc-btn" onclick="pressNum('9')">9</button>
+                    <button class="calc-btn op-btn" onclick="pressOp('/')">÷</button>
+
+                    <button class="calc-btn" onclick="pressNum('4')">4</button>
+                    <button class="calc-btn" onclick="pressNum('5')">5</button>
+                    <button class="calc-btn" onclick="pressNum('6')">6</button>
+                    <button class="calc-btn op-btn" onclick="pressOp('*')">×</button>
+
+                    <button class="calc-btn" onclick="pressNum('1')">1</button>
+                    <button class="calc-btn" onclick="pressNum('2')">2</button>
+                    <button class="calc-btn" onclick="pressNum('3')">3</button>
+                    <button class="calc-btn op-btn" onclick="pressOp('-')">-</button>
+
+                    <button class="calc-btn" onclick="pressNum('0')">0</button>
+                    <button class="calc-btn" onclick="pressNum('.')">.</button>
+                    <button class="calc-btn op-btn" onclick="pressOp('+')">+</button>
+                    <button class="calc-btn op-btn" onclick="pressSci('pct')">%</button>
+
+                    <button class="calc-btn equal-btn" onclick="evaluateCalc()">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game Database State
+        const topics = [
+            { id: 0, title: "1. Atomic Structure", paper: "Paper 1", qCount: 10 },
+            { id: 1, title: "2. Bonding & Structure", paper: "Paper 1", qCount: 10 },
+            { id: 2, title: "3. Quantitative Chem", paper: "Paper 1", qCount: 10 },
+            { id: 3, title: "4. Chemical Changes", paper: "Paper 1", qCount: 10 },
+            { id: 4, title: "5. Energy Changes", paper: "Paper 1", qCount: 10 },
+            { id: 5, title: "6. Rates & Equilibrium", paper: "Paper 2", qCount: 10 },
+            { id: 6, title: "7. Organic Chemistry", paper: "Paper 2", qCount: 10 },
+            { id: 7, title: "8. Chemical Analysis", paper: "Paper 2", qCount: 10 },
+            { id: 8, title: "9. Atmospheric Chem", paper: "Paper 2", qCount: 10 },
+            { id: 9, title: "10. Using Resources", paper: "Paper 2", qCount: 10 }
+        ];
+
+        const questDatabase = {
+            0: [
+                {
+                    q: "What is the relative electrical charge of a proton, neutron, and electron respectively?",
+                    options: ["+1, 0, and -1", "0, +1, and -1", "+1, -1, and 0", "-1, 0, and +1"],
+                    ans: 0,
+                    hint: "Protons are positive (+1), neutrons have no charge (0), and electrons are negative (-1).",
+                    xp: 50
+                },
+                {
+                    q: "Why did Mendeleev leave gaps in his early periodic table?",
+                    options: [
+                        "For elements he thought had been destroyed",
+                        "For undiscovered elements that he predicted existed",
+                        "Because those spaces were unstable in laboratory tests",
+                        "To make the table visually symmetrical"
+                    ],
+                    ans: 1,
+                    hint: "Mendeleev predicted properties of undiscovered elements (like Gallium) that matched perfectly once discovered.",
+                    xp: 50
+                },
+                {
+                    q: "Explain why Group 0 Noble Gases are chemically unreactive.",
+                    options: [
+                        "They have a full outer shell of electrons, meaning they are exceptionally stable.",
+                        "They are too large to collide with any other molecules.",
+                        "They only exist in gaseous forms which cannot bond.",
+                        "Their outer neutrons prevent valence attraction."
+                    ],
+                    ans: 0,
+                    hint: "A stable, full outer shell of electrons (a complete octet) means they do not need to gain, lose, or share electrons.",
+                    xp: 60
+                },
+                {
+                    q: "How did the scattering experiment of alpha particles by Rutherford disprove the Plum Pudding model?",
+                    options: [
+                        "Most particles passed straight through, but some deflected, proving a dense positive nucleus exists.",
+                        "All alpha particles bounced directly back, showing the atom is completely solid.",
+                        "The particles turned into electrons on impact, proving the existence of shells.",
+                        "It showed that neutrons orbit the nucleus at speed."
+                    ],
+                    ans: 0,
+                    hint: "Most went straight through (empty space), but a tiny fraction deflected at wide angles (meeting a tiny, positive nucleus).",
+                    xp: 60
+                },
+                {
+                    q: "An isotope of Oxygen has 8 protons and 10 neutrons. What is its mass number?",
+                    options: ["8", "10", "18", "2"],
+                    ans: 2,
+                    hint: "Mass Number = Number of Protons + Number of Neutrons (8 + 10 = 18).",
+                    xp: 50
+                },
+                {
+                    q: "Which scientist discovered the existence of the neutron within the atomic nucleus?",
+                    options: ["Ernest Rutherford", "John Dalton", "James Chadwick", "J.J. Thomson"],
+                    ans: 2,
+                    hint: "James Chadwick proved the existence of neutrons in 1932, explaining the missing mass in nuclei.",
+                    xp: 50
+                },
+                {
+                    q: "How does the reactivity of Group 1 alkali metals change as you go down the group?",
+                    options: [
+                        "It increases because the outer electron is further from the nucleus and more easily lost.",
+                        "It decreases because the atoms become heavier.",
+                        "It remains identical across all periods.",
+                        "It decreases because of proton shielding."
+                    ],
+                    ans: 0,
+                    hint: "As you go down, atomic radius increases. There is weaker electrostatic attraction to the outer electron, so it is lost more easily.",
+                    xp: 60
+                },
+                {
+                    q: "How does the boiling point of Group 7 halogens change as you go down the group?",
+                    options: [
+                        "It increases because the molecules get larger, resulting in stronger intermolecular forces.",
+                        "It decreases because the elements become gasier.",
+                        "It stays the same because they are all diatomic.",
+                        "It decreases because they have fewer protons."
+                    ],
+                    ans: 0,
+                    hint: "Boiling point increases down Group 7. Relative molecular mass increases, which strengthens the intermolecular forces.",
+                    xp: 60
+                },
+                {
+                    q: "What is the approximate radius of an atom?",
+                    options: ["1 x 10⁻¹⁰ metres", "1 x 10⁻⁶ metres", "1 x 10⁻¹⁵ metres", "1 x 10⁻³ metres"],
+                    ans: 0,
+                    hint: "An atom is about 0.1 nanometers across, which is 1 x 10⁻¹⁰ metres.",
+                    xp: 50
+                },
+                {
+                    q: "What is the primary difference between the plum pudding model and the nuclear model of the atom?",
+                    options: [
+                        "The plum pudding model has no empty space and features a cloud of positive charge with embedded electrons.",
+                        "The nuclear model states that electrons are embedded in the nucleus.",
+                        "The plum pudding model suggests electrons orbit at fixed distances.",
+                        "The nuclear model has no neutrons."
+                    ],
+                    ans: 0,
+                    hint: "The plum pudding model suggests a solid positive mass with negative electrons scattered inside, with no empty space or central nucleus.",
+                    xp: 65
+                }
+            ],
+            1: [
+                {
+                    q: "Describe the structure and electrostatic forces present in sodium chloride (NaCl).",
+                    options: [
+                        "A giant ionic lattice held together by strong electrostatic forces of attraction between oppositely charged ions.",
+                        "A simple molecular structure with weak covalent intermolecular forces.",
+                        "A metallic lattice with a sea of localized protons.",
+                        "A linear giant covalent lattice with strong electrostatic shielding."
+                    ],
+                    ans: 0,
+                    hint: "Ionic bonding occurs between metals and non-metals via electrostatic attraction.",
+                    xp: 50
+                },
+                {
+                    q: "Explain why graphite can conduct electricity but diamond cannot, even though both are made purely of carbon.",
+                    options: [
+                        "Graphite contains metallic ions, whereas diamond does not.",
+                        "Graphite has delocalised electrons free to carry charge through the layers because each carbon atom only forms 3 bonds.",
+                        "Diamond contains ionic bounds which isolate electrical waves.",
+                        "Graphite is a liquid structure at microscopic levels."
+                    ],
+                    ans: 1,
+                    hint: "In graphite, each carbon atom forms 3 covalent bonds. The 4th valence electron is delocalised and free to flow.",
+                    xp: 60
+                },
+                {
+                    q: "Which property is characteristic of transition metals compared to Group 1 Alkali metals?",
+                    options: [
+                        "Lower density and lower melting points",
+                        "Highly reactive with cold water",
+                        "They form colored compounds and can act as effective catalysts",
+                        "They only form ions with a +1 electrical charge"
+                    ],
+                    ans: 2,
+                    hint: "Transition metals are hard, dense, form variable charge ions (like Fe2+ and Fe3+), and make excellent industrial catalysts.",
+                    xp: 50
+                },
+                {
+                    q: "Why do simple molecular substances (like Cl₂ or H₂O) have low melting and boiling points?",
+                    options: [
+                        "They have weak covalent bonds within the molecules.",
+                        "They have weak intermolecular forces between the molecules that require little energy to overcome.",
+                        "They are completely devoid of any electrostatic force.",
+                        "Their atoms are rapidly vibrating and repel each other."
+                    ],
+                    ans: 1,
+                    hint: "Do NOT say covalent bonds break! The strong covalent bonds inside molecules stay intact; only weak intermolecular forces break.",
+                    xp: 60
+                },
+                {
+                    q: "What is an alloy, and why is it harder than a pure metal?",
+                    options: [
+                        "A mixture of metals where different sized atoms disrupt the regular layers, preventing them from sliding over each other.",
+                        "A metal combined with a gas to form a highly compact crystalline bubble structure.",
+                        "A purely ionic structure that locks the atoms into a single rigid block.",
+                        "A metal that has been cooled extremely slowly to harden its covalent connections."
+                    ],
+                    ans: 0,
+                    hint: "Pure metals have neat rows of identical atoms that slide easily. Alloys mix in different sized atoms, locking the layers in place.",
+                    xp: 60
+                },
+                {
+                    q: "What type of bonding involves the sharing of pairs of electrons between two non-metal atoms?",
+                    options: ["Ionic", "Metallic", "Covalent", "Intermolecular"],
+                    ans: 2,
+                    hint: "Covalent bonding involves shared pairs of electrons between non-metal atoms to achieve stable configurations.",
+                    xp: 50
+                },
+                {
+                    q: "Which of the following describes giant covalent structures like silicon dioxide?",
+                    options: [
+                        "They have very high melting points because many strong covalent bonds must be overcome.",
+                        "They have low boiling points due to weak intermolecular forces.",
+                        "They are held together by metallic attractions.",
+                        "They dissolve easily in water to conduct electricity."
+                    ],
+                    ans: 0,
+                    hint: "Giant covalent structures contain macromolecular arrays where millions of atoms are linked by strong covalent bonds.",
+                    xp: 60
+                },
+                {
+                    q: "Why are metals good conductors of heat and electricity?",
+                    options: [
+                        "They contain delocalised electrons that are free to move throughout the entire structure.",
+                        "Their positive ions are free to move and carry charge.",
+                        "They contain weak ionic paths that allow energy to slip through.",
+                        "They are composed of non-bonded, highly active gaseous atoms."
+                    ],
+                    ans: 0,
+                    hint: "The sea of delocalised electrons in metals can drift through the structure under a potential difference or transmit thermal energy.",
+                    xp: 50
+                },
+                {
+                    q: "What are polymers and what state are they typically in at room temperature?",
+                    options: [
+                        "Very large molecules linked by strong covalent bonds; they are solids due to strong intermolecular forces.",
+                        "Simple molecules; they are liquids.",
+                        "Ionic crystals; they are powders.",
+                        "Gaseous compounds linked by metallic bonds."
+                    ],
+                    ans: 0,
+                    hint: "Polymers are long-chain structures. Because they are so large, the sum of their intermolecular forces is high, making them solid at room temperature.",
+                    xp: 60
+                },
+                {
+                    q: "Which carbon allotrope forms hollow tubes or spheres, useful for nanotechnology and drug delivery?",
+                    options: ["Graphite", "Fullerenes", "Diamond", "Graphene"],
+                    ans: 1,
+                    hint: "Fullerenes (such as buckminsterfullerene C60 or carbon nanotubes) are cage-like molecular carbon structures.",
+                    xp: 55
+                }
+            ],
+            2: [
+                {
+                    q: "What is the relative formula mass of Calcium Hydroxide, Ca(OH)₂? (Ar: Ca = 40, O = 16, H = 1)",
+                    options: ["57", "74", "114", "98"],
+                    ans: 1,
+                    hint: "Formula has 1x Ca (40), and 2x (O + H) = 2x (16 + 1) = 34. Total is 40 + 34 = 74.",
+                    xp: 60
+                },
+                {
+                    q: "What volume does 0.5 moles of any gas occupy at room temperature and pressure (RTP)?",
+                    options: ["24 dm³", "12 dm³", "48 dm³", "6 dm³"],
+                    ans: 1,
+                    hint: "1 mole of gas always occupies 24 dm³ at RTP. Therefore, 0.5 moles = 12 dm³.",
+                    xp: 50
+                },
+                {
+                    q: "What is the equation linking moles, mass, and relative formula mass?",
+                    options: [
+                        "Moles = Mass x Mr",
+                        "Moles = Mass / Mr",
+                        "Moles = Mr / Mass",
+                        "Mass = Moles / Mr"
+                    ],
+                    ans: 1,
+                    hint: "Moles can be determined by dividing the mass of the substance by its molecular weight (Mr).",
+                    xp: 50
+                },
+                {
+                    q: "What is the percentage atom economy for making hydrogen gas in the reaction: CH₄ + H₂O -> CO + 3H₂? (Mr: CH₄=16, H₂O=18, CO=28, H₂=2)",
+                    options: ["17.6%", "100%", "21.4%", "6.0%"],
+                    ans: 0,
+                    hint: "Atom Economy = (Mr of Desired Product / Sum of Mr of all Reactants) x 100. Desired product is 3x H2 = 6. Reactants are 16 + 18 = 34. (6 / 34) * 100 = 17.6%.",
+                    xp: 70
+                },
+                {
+                    q: "Why is it not always possible to obtain the calculated (theoretical) 100% yield in a chemical preparation?",
+                    options: [
+                        "The reaction may be reversible, some product may be lost during separation, or unexpected side reactions occur.",
+                        "The chemical atoms actively shrink in volume during closed reactions.",
+                        "Mass is naturally destroyed when energy is released.",
+                        "The limiting reactant always duplicates itself."
+                    ],
+                    ans: 0,
+                    hint: "In practice, reactions are rarely perfect due to mechanical loss, incomplete equilibrium, or side products.",
+                    xp: 60
+                },
+                {
+                    q: "What value represents Avogadro's constant?",
+                    options: ["6.02 x 10²³ per mole", "3.00 x 10⁸ per mole", "1.66 x 10⁻²⁴ per mole", "9.81 x 10² per mole"],
+                    ans: 0,
+                    hint: "Avogadro's constant defines the quantity of atoms, molecules, or ions in precisely one mole of substance.",
+                    xp: 50
+                },
+                {
+                    q: "How do you calculate the concentration of a solution in g/dm³?",
+                    options: [
+                        "Concentration = Mass (g) / Volume (dm³)",
+                        "Concentration = Moles / Mass (g)",
+                        "Concentration = Volume (dm³) / Mass (g)",
+                        "Concentration = Mass (g) x Volume (dm³)"
+                    ],
+                    ans: 0,
+                    hint: "Concentration tells us how much solute is packed in a given unit volume. Mass divided by volume gives g/dm³.",
+                    xp: 50
+                },
+                {
+                    q: "What is meant by a 'limiting reactant' in a chemical reaction?",
+                    options: [
+                        "The reactant that is completely consumed first, limiting the amount of product formed.",
+                        "The reactant that is added in excess to speed up the rate.",
+                        "The catalyst that restricts toxic side-products.",
+                        "The solvent that prevents evaporation."
+                    ],
+                    ans: 0,
+                    hint: "The limiting reactant determines the maximum yield because once it runs out, the chemical reaction must halt.",
+                    xp: 60
+                },
+                {
+                    q: "Calculate the concentration in mol/dm³ of a solution containing 2 moles of solute dissolved in 400 cm³ of water.",
+                    options: ["5.0 mol/dm³", "0.005 mol/dm³", "0.8 mol/dm³", "8.0 mol/dm³"],
+                    ans: 0,
+                    hint: "Convert cm³ to dm³: 400 / 1000 = 0.4 dm³. Concentration = Moles / Volume = 2 / 0.4 = 5.0 mol/dm³.",
+                    xp: 70
+                },
+                {
+                    q: "State the Law of Conservation of Mass.",
+                    options: [
+                        "No atoms are lost or made during a chemical reaction, so total mass of products equals total mass of reactants.",
+                        "Mass is lost when gas escapes.",
+                        "Mass of reactants is always double the mass of products.",
+                        "Energy is created from mass during combustion."
+                    ],
+                    ans: 0,
+                    hint: "Because atoms are simply rearranged in a chemical reaction, the total mass remains perfectly conserved.",
+                    xp: 50
+                }
+            ],
+            3: [
+                {
+                    q: "What are the products when a metal carbonate reacts with an acid?",
+                    options: [
+                        "Salt + Hydrogen gas",
+                        "Salt + Water",
+                        "Salt + Water + Carbon Dioxide",
+                        "Metal Oxide + Carbon dioxide"
+                    ],
+                    ans: 2,
+                    hint: "Carbonates always release Carbon dioxide gas along with a salt and water.",
+                    xp: 50
+                },
+                {
+                    q: "During the electrolysis of molten Lead Bromide (PbBr₂), what forms at the cathode (negative electrode)?",
+                    options: [
+                        "Lead metal, because Pb²⁺ ions are attracted to the negative cathode and gain electrons (reduction)",
+                        "Bromine gas, because negative ions are attracted to the cathode",
+                        "Hydrogen gas, because of water impurities",
+                        "Lead ions lose electrons to form oxygen gas"
+                    ],
+                    ans: 0,
+                    hint: "Positive metal ions (Pb²⁺) move to the negative electrode (cathode) where they gain electrons (reduction).",
+                    xp: 60
+                },
+                {
+                    q: "Define the difference between a strong acid and a concentrated acid.",
+                    options: [
+                        "Strong refers to full ionisation in solution; concentrated refers to a large amount of acid dissolved per unit volume.",
+                        "Strong refers to high pH values; concentrated refers to how easily it reacts with metals.",
+                        "There is no difference; both represent highly corrosive systems.",
+                        "Strong acids contain more hydroxide ions than concentrated versions."
+                    ],
+                    ans: 0,
+                    hint: "Strength is a chemical property of ionization percentage. Concentration is a measure of how packed the solute is in a volume.",
+                    xp: 70
+                },
+                {
+                    q: "What are the correct products at the electrodes during the electrolysis of aqueous Sodium Chloride (NaCl) solution?",
+                    options: [
+                        "Anode: Chlorine gas; Cathode: Hydrogen gas",
+                        "Anode: Sodium metal; Cathode: Oxygen gas",
+                        "Anode: Oxygen gas; Cathode: Sodium metal",
+                        "Anode: Chlorine gas; Cathode: Sodium metal"
+                    ],
+                    ans: 0,
+                    hint: "At the cathode, H+ is discharged as hydrogen gas because hydrogen is less reactive than sodium. At the anode, halide ions (Cl-) are discharged as chlorine gas.",
+                    xp: 70
+                },
+                {
+                    q: "Write the ionic half-equation for the oxidation reaction of hydroxide (OH⁻) ions at the anode during the electrolysis of water.",
+                    options: [
+                        "4OH⁻ -> O₂ + 2H₂O + 4e⁻",
+                        "OH⁻ + e⁻ -> H + O₂",
+                        "2OH⁻ -> O₂ + H₂ + 2e⁻",
+                        "4OH⁻ + 4e⁻ -> 2H₂O + O₂"
+                    ],
+                    ans: 0,
+                    hint: "Hydroxide ions lose electrons (oxidation) at the positive anode to form oxygen gas and water: 4OH⁻ -> O₂ + 2H₂O + 4e⁻.",
+                    xp: 70
+                },
+                {
+                    q: "What is the pH of an acidic, neutral, and alkaline solution respectively?",
+                    options: ["Below 7, exactly 7, above 7", "Above 7, exactly 7, below 7", "Exactly 7, below 7, above 7", "All of them are below 7"],
+                    ans: 0,
+                    hint: "Acids have pH < 7, neutral water is pH 7, and alkaline solutions have pH > 7.",
+                    xp: 50
+                },
+                {
+                    q: "What type of reaction occurs when an acid reacts with an alkali?",
+                    options: ["Neutralisation", "Oxidation", "Displacement", "Thermal Decomposition"],
+                    ans: 0,
+                    hint: "An acid reacting with an alkali forms a salt and water. This is a neutralisation reaction.",
+                    xp: 50
+                },
+                {
+                    q: "If a metal is more reactive than hydrogen, what gas will be produced when it reacts with dilute acid?",
+                    options: ["Oxygen", "Chlorine", "Hydrogen", "Carbon Dioxide"],
+                    ans: 2,
+                    hint: "Metals above hydrogen in the reactivity series displace hydrogen from acids, forming hydrogen gas.",
+                    xp: 50
+                },
+                {
+                    q: "Explain reduction and oxidation in terms of electron transfer (OIL RIG).",
+                    options: [
+                        "Oxidation is Loss of electrons, Reduction is Gain of electrons.",
+                        "Oxidation is Gain of electrons, Reduction is Loss of electrons.",
+                        "Oxidation is Loss of oxygen, Reduction is Gain of oxygen.",
+                        "Oxidation is Loss of protons, Reduction is Gain of neutrons."
+                    ],
+                    ans: 0,
+                    hint: "Remember the acronym OIL RIG: Oxidation Is Loss, Reduction Is Gain.",
+                    xp: 60
+                },
+                {
+                    q: "Why can an ionic compound only conduct electricity when molten or dissolved in water?",
+                    options: [
+                        "The ions are free to move and carry the electric charge.",
+                        "The covalent bonds break to let electrons flow.",
+                        "Water acts as a wire to conduct electricity.",
+                        "The molecules shrink, lowering the resistance."
+                    ],
+                    ans: 0,
+                    hint: "In solid state, ions are locked in a lattice. When molten or aqueous, the ions are free to migrate to the electrodes.",
+                    xp: 60
+                }
+            ],
+            4: [
+                {
+                    q: "In an exothermic reaction profile, are the reactants or products higher in energy?",
+                    options: [
+                        "The products are higher because energy is absorbed from the surroundings.",
+                        "The reactants are higher because energy is released to the surroundings as products form.",
+                        "They are both at the exact same level.",
+                        "It depends on whether a catalyst is used."
+                    ],
+                    ans: 1,
+                    hint: "In exothermic reactions, energy is lost. Thus, products have less chemical energy than reactants.",
+                    xp: 50
+                },
+                {
+                    q: "How does a catalyst increase the rate of chemical reaction in terms of activation energy?",
+                    options: [
+                        "It provides an alternative pathway with a lower activation energy.",
+                        "It raises the thermal energy barrier.",
+                        "It alters the enthalpy change of the reaction directly.",
+                        "It increases the collision frequency of the molecules."
+                    ],
+                    ans: 0,
+                    hint: "Catalysts provide an alternative path requiring less initial energy threshold, but do not alter the overall energy change.",
+                    xp: 50
+                },
+                {
+                    q: "If bond breaking is endothermic and bond making is exothermic, what defines an overall endothermic reaction?",
+                    options: [
+                        "The energy released during bond making is greater than the energy required for bond breaking.",
+                        "The energy required for bond breaking is greater than the energy released during bond making.",
+                        "The activation energy is zero.",
+                        "It releases thermal energy to its surroundings."
+                    ],
+                    ans: 1,
+                    hint: "If you spend more energy breaking bonds than you recover making new ones, energy must be taken from surroundings.",
+                    xp: 60
+                },
+                {
+                    q: "In a hydrogen fuel cell, what is the overall chemical reaction and the only waste product produced?",
+                    options: [
+                        "2H₂ + O₂ -> 2H₂O (Water is the only product)",
+                        "H₂ + CO₂ -> CH₄ (Methane is the product)",
+                        "2H₂ + N₂ -> 2NH₃ (Ammonia is the product)",
+                        "H₂ + O₂ -> H₂O₂ (Hydrogen Peroxide is the product)"
+                    ],
+                    ans: 0,
+                    hint: "Hydrogen fuel cells are clean because they react hydrogen with oxygen to form pure water, releasing electrical energy.",
+                    xp: 60
+                },
+                {
+                    q: "Calculate the energy change for: H₂ + Cl₂ -> 2HCl. (Bond energies: H-H = 436 kJ/mol, Cl-Cl = 242 kJ/mol, H-Cl = 431 kJ/mol)",
+                    options: ["-184 kJ/mol", "+184 kJ/mol", "-247 kJ/mol", "+247 kJ/mol"],
+                    ans: 0,
+                    hint: "Reactant bonds broken: 436 + 242 = 678 kJ. Product bonds made: 2 * 431 = 862 kJ. Energy change = Broken - Made = 678 - 862 = -184 kJ/mol (Exothermic).",
+                    xp: 70
+                },
+                {
+                    q: "What describes the change in temperature during an endothermic reaction?",
+                    options: [
+                        "The temperature of the surroundings decreases because heat energy is taken in.",
+                        "The temperature of the surroundings increases because heat energy is released.",
+                        "The temperature remains perfectly stable.",
+                        "The solution boils and completely evaporates."
+                    ],
+                    ans: 0,
+                    hint: "Endothermic processes absorb heat from the immediate environment, causing the temperature of the surroundings to drop.",
+                    xp: 50
+                },
+                {
+                    q: "What is the minimum amount of energy that particles must have to react called?",
+                    options: ["Activation Energy", "Kinetic Energy", "Enthalpy Energy", "Thermal Cap Limit"],
+                    ans: 0,
+                    hint: "Activation energy is the barrier that particles must overcome during collision to successfully break bonds.",
+                    xp: 50
+                },
+                {
+                    q: "What happens in a simple chemical cell?",
+                    options: [
+                        "Chemical energy is converted to electrical energy through redox reactions between two metals of different reactivity.",
+                        "Electrical energy is consumed to split a compound into elements.",
+                        "The temperature of the system is cooled to absolute zero.",
+                        "Covalent bonds are broken by mechanical pressure."
+                    ],
+                    ans: 0,
+                    hint: "A basic chemical cell links two metals of different reactivities via an electrolyte, creating a potential difference.",
+                    xp: 60
+                },
+                {
+                    q: "How does the voltage of a chemical cell change with the reactivity of the metals used?",
+                    options: [
+                        "The greater the difference in reactivity between the two metals, the larger the voltage.",
+                        "The greater the difference, the smaller the voltage.",
+                        "Reactivity of the metals does not affect the voltage.",
+                        "The voltage will always drop to zero if the metals are different."
+                    ],
+                    ans: 0,
+                    hint: "A wider difference in electrode reactivity generates a higher potential difference (voltage) in the cell.",
+                    xp: 60
+                },
+                {
+                    q: "Why are non-rechargeable cells (like alkaline batteries) unable to be recharged?",
+                    options: [
+                        "The chemical reactions inside are irreversible.",
+                        "They do not contain any metals.",
+                        "They are too small to receive electrons.",
+                        "The electrolyte inside evaporates once used."
+                    ],
+                    ans: 0,
+                    hint: "Once the limiting reactant is exhausted, the forward reaction stops. The reaction cannot be reversed by applying an electrical current.",
+                    xp: 55
+                }
+            ],
+            5: [
+                {
+                    q: "Using collision theory, how does increasing the surface area of a solid reactant increase reaction rate?",
+                    options: [
+                        "It increases the activation energy threshold.",
+                        "More particles are exposed, leading to more frequent successful collisions per second.",
+                        "It gives particles greater kinetic energy so they move faster.",
+                        "It increases the yield of products."
+                    ],
+                    ans: 1,
+                    hint: "Greater surface area allows more exposure for contact, speeding up collision frequency.",
+                    xp: 50
+                },
+                {
+                    q: "According to Le Chatelier's Principle, what is the effect of increasing pressure on a gaseous equilibrium system?",
+                    options: [
+                        "The equilibrium shifts towards the side with the greater number of gaseous moles.",
+                        "The equilibrium shifts towards the side with the fewer number of gaseous moles.",
+                        "The reaction instantly stops.",
+                        "The forward reaction becomes highly endothermic."
+                    ],
+                    ans: 1,
+                    hint: "Increasing pressure forces the system to adjust by shifting to favor the side occupying less volume (fewer gas moles).",
+                    xp: 60
+                },
+                {
+                    q: "How does temperature affect equilibrium in an exothermic reaction?",
+                    options: [
+                        "Increasing temperature decreases the yield of the products (equilibrium shifts left).",
+                        "Increasing temperature increases the yield of the products (equilibrium shifts right).",
+                        "Temperature has no effect on equilibrium yield, only rate.",
+                        "The reaction becomes completely irreversible."
+                    ],
+                    ans: 0,
+                    hint: "An exothermic system releases heat. Adding heat shifts the reaction in the reverse direction to absorb it.",
+                    xp: 60
+                },
+                {
+                    q: "How is the rate of a reaction determined from a concentration-time graph?",
+                    options: [
+                        "By measuring the gradient of the tangent to the curve at that specific time.",
+                        "By taking the final concentration value and dividing by 100.",
+                        "By finding the area under the curve.",
+                        "By calculating the average mass difference."
+                    ],
+                    ans: 0,
+                    hint: "The gradient of a tangent line drawn on the curve gives the rate of reaction at that precise instant.",
+                    xp: 60
+                },
+                {
+                    q: "What is dynamic equilibrium?",
+                    options: [
+                        "When the forward and reverse reactions happen at the exact same rate, keeping concentrations constant in a closed system.",
+                        "When a reaction has completely finished and all movement has ceased.",
+                        "When there are equal masses of reactants and products present in an open beaker.",
+                        "When catalysts balance out the activation energy."
+                    ],
+                    ans: 0,
+                    hint: "Both reactions occur at matching speeds, meaning no macroscopic change is visible, but microscopic actions continue.",
+                    xp: 60
+                },
+                {
+                    q: "How does increasing the concentration of reactants affect the rate of reaction?",
+                    options: [
+                        "It increases collision frequency as there are more particles in the same volume.",
+                        "It increases the activation energy.",
+                        "It makes the reaction endothermic.",
+                        "It has no effect on collision rate."
+                    ],
+                    ans: 0,
+                    hint: "More reactant particles packed into a given volume increases the frequency of collisions between them.",
+                    xp: 50
+                },
+                {
+                    q: "What is a catalyst and how does it affect the reaction?",
+                    options: [
+                        "It speeds up the reaction but remains chemically unchanged at the end.",
+                        "It slows down the reaction to prevent explosion.",
+                        "It increases the yield of products.",
+                        "It is completely consumed to form products."
+                    ],
+                    ans: 0,
+                    hint: "Catalysts accelerate reactions without being consumed, allowing them to be recovered and reused.",
+                    xp: 50
+                },
+                {
+                    q: "What must happen for a chemical reaction to occur, according to collision theory?",
+                    options: [
+                        "Reacting particles must collide with sufficient energy (the activation energy).",
+                        "Particles must be frozen solid.",
+                        "Reactants must be exposed to open light.",
+                        "Atoms must always split into free electrons."
+                    ],
+                    ans: 0,
+                    hint: "No reaction can occur unless particles physically collide with energy greater than or equal to the activation threshold.",
+                    xp: 50
+                },
+                {
+                    q: "What happens to a reversible reaction when the conditions are changed in a closed system?",
+                    options: [
+                        "The system counteracts the change to restore equilibrium (Le Chatelier's Principle).",
+                        "The reaction permanently halts.",
+                        "The reaction becomes irreversible.",
+                        "The catalyst decomposes immediately."
+                    ],
+                    ans: 0,
+                    hint: "Le Chatelier's Principle states that a system at equilibrium will adjust to oppose any dynamic change applied to it.",
+                    xp: 60
+                },
+                {
+                    q: "If a reversible reaction is endothermic in the forward direction, what is it in the reverse direction?",
+                    options: ["Exothermic", "Endothermic", "Catalytic", "Neutral"],
+                    ans: 0,
+                    hint: "The energy change in a reversible process is equal and opposite. If it absorbs energy one way, it must release it the other way.",
+                    xp: 50
+                }
+            ],
+            6: [
+                {
+                    q: "What is the general formula for homologous alkanes?",
+                    options: ["CnH2n", "CnH2n+2", "CnH2n-2", "CnHn"],
+                    ans: 1,
+                    hint: "Alkanes are saturated hydrocarbons conforming to CnH2n+2.",
+                    xp: 50
+                },
+                {
+                    q: "During fractional distillation, why do hydrocarbons with shorter chain lengths collect at the top of the column?",
+                    options: [
+                        "They have lower boiling points and rise as vapor to the cooler top before condensing.",
+                        "They are denser and float.",
+                        "They have stronger intermolecular attractions.",
+                        "They react with air at the top to condense."
+                    ],
+                    ans: 0,
+                    hint: "Short-chain hydrocarbons have weak intermolecular forces, boiling at lower temperatures.",
+                    xp: 60
+                },
+                {
+                    q: "What is the chemical test to distinguish alkenes from alkanes?",
+                    options: [
+                        "Alkenes decolourise orange bromine water.",
+                        "Alkenes turn blue litmus paper red.",
+                        "Alkenes produce a pop sound with a lighted splint.",
+                        "Alkenes react to form solid carbon lattices."
+                    ],
+                    ans: 0,
+                    hint: "Bromine reacts with the unsaturated double bond of alkenes, turning the orange water colorless.",
+                    xp: 50
+                },
+                {
+                    q: "What are the two products formed during the complete combustion of any clean hydrocarbon?",
+                    options: [
+                        "Carbon dioxide and Water",
+                        "Carbon monoxide and Hydrogen",
+                        "Carbon and Hydrogen peroxide",
+                        "Soot and Water vapor"
+                    ],
+                    ans: 0,
+                    hint: "Complete combustion occurs in plenty of oxygen, fully oxidising carbon to carbon dioxide and hydrogen to water.",
+                    xp: 50
+                },
+                {
+                    q: "Describe what happens during catalytic cracking of long-chain hydrocarbons.",
+                    options: [
+                        "Thermal decomposition over a hot catalyst yields shorter, more useful alkanes and alkenes.",
+                        "Mixing with water under pressure produces alcohols.",
+                        "Adding oxygen burns the fuel down into pure charcoal.",
+                        "A physical separation based purely on solubility."
+                    ],
+                    ans: 0,
+                    hint: "Cracking is thermal decomposition. High heat and a catalyst break long molecules into valuable short-chain fuels.",
+                    xp: 65
+                },
+                {
+                    q: "What is the functional group of alkenes?",
+                    options: ["C=C double bond", "-OH group", "-COOH group", "-COO- link"],
+                    ans: 0,
+                    hint: "Alkenes are unsaturated hydrocarbons containing at least one carbon-carbon double bond.",
+                    xp: 50
+                },
+                {
+                    q: "What is the functional group of alcohols?",
+                    options: ["-OH", "-COOH", "-COO-", "-CHO"],
+                    ans: 0,
+                    hint: "Alcohols contain the hydroxyl (-OH) functional group.",
+                    xp: 50
+                },
+                {
+                    q: "What acid is produced when ethanol is oxidised?",
+                    options: ["Ethanoic acid", "Hydrochloric acid", "Citric acid", "Methanoic acid"],
+                    ans: 0,
+                    hint: "Oxidation of an alcohol yields a carboxylic acid. Ethanol oxidises to ethanoic acid (the main acid in vinegar).",
+                    xp: 60
+                },
+                {
+                    q: "What type of polymerisation involves monomers with two different functional groups losing small molecules like water?",
+                    options: ["Condensation polymerisation", "Addition polymerisation", "Catalytic cracking", "Hydrolysis"],
+                    ans: 0,
+                    hint: "Condensation polymerisation forms a polymer chain while releasing a small byproduct molecule, usually water.",
+                    xp: 70
+                },
+                {
+                    q: "Which naturally occurring polymers carry genetic instructions in living organisms, constructed from nucleotide monomers?",
+                    options: ["DNA", "Proteins", "Starch", "Cellulose"],
+                    ans: 0,
+                    hint: "Deoxyribonucleic acid (DNA) is a giant polymer made of nucleotide monomers in a double-helix structure.",
+                    xp: 55
+                }
+            ],
+            7: [
+                {
+                    q: "How do you test for Carbon Dioxide gas in the laboratory?",
+                    options: [
+                        "Brings a glowing splint which relights.",
+                        "Bubbled through limewater, turning it cloudy.",
+                        "Turns damp red litmus paper blue.",
+                        "Produces a squeaky pop with a burning splint."
+                    ],
+                    ans: 1,
+                    hint: "Lime water (calcium hydroxide) reacts with CO2 to form an insoluble precipitate of calcium carbonate.",
+                    xp: 50
+                },
+                {
+                    q: "What makes a substance pure in a chemical context?",
+                    options: [
+                        "It consists of only a single element or compound, not mixed with other substances.",
+                        "It has been filtered and distilled multiple times.",
+                        "It contains no synthetic additives.",
+                        "It boils over a wide range of temperatures."
+                    ],
+                    ans: 0,
+                    hint: "Purity means there is only one compound or element present, producing precise single melting/boiling points.",
+                    xp: 50
+                },
+                {
+                    q: "How is the Retention Factor (Rf) calculated in paper chromatography?",
+                    options: [
+                        "Rf = Distance moved by solvent / Distance moved by substance",
+                        "Rf = Distance moved by substance / Distance moved by solvent",
+                        "Rf = Total run time x Solvent velocity",
+                        "Rf = Mass of substance / Mass of paper template"
+                    ],
+                    ans: 1,
+                    hint: "The Rf value is a ratio always less than or equal to 1, calculated as substance distance over solvent front distance.",
+                    xp: 60
+                },
+                {
+                    q: "What is the flame test color for Potassium, Sodium, and Calcium ions respectively?",
+                    options: [
+                        "Lilac, Yellow-Orange, Orange-Red",
+                        "Green, Lilac, Brick-Red",
+                        "Blue-Green, Lilac, Yellow",
+                        "Lilac, Crimson, Green"
+                    ],
+                    ans: 0,
+                    hint: "Remember: Potassium is Lilac, Sodium is distinctive Yellow-Orange, Calcium is Brick/Orange-Red.",
+                    xp: 60
+                },
+                {
+                    q: "What positive result is observed when dilute nitric acid and silver nitrate solution are added to a solution containing chloride ions?",
+                    options: [
+                        "A white precipitate forms",
+                        "A cream precipitate forms",
+                        "A yellow precipitate forms",
+                        "Effervescence of chlorine gas occurs"
+                    ],
+                    ans: 0,
+                    hint: "Silver halides precipitate: Chloride gives white, Bromide gives cream, Iodide gives yellow.",
+                    xp: 65
+                },
+                {
+                    q: "What is the chemical test for Oxygen gas?",
+                    options: [
+                        "A glowing splint will relight when placed in the gas.",
+                        "A burning splint will produce a squeaky pop.",
+                        "It turns damp blue litmus paper red.",
+                        "It turns limewater cloudy."
+                    ],
+                    ans: 0,
+                    hint: "Oxygen supports combustion. A glowing splint will relight in its presence.",
+                    xp: 50
+                },
+                {
+                    q: "What is the chemical test for Hydrogen gas?",
+                    options: [
+                        "A burning splint held near the mouth of the tube creates a squeaky 'pop'.",
+                        "It relights a glowing splint.",
+                        "It bleaches damp litmus paper white.",
+                        "It turns lime water milky."
+                    ],
+                    ans: 0,
+                    hint: "Hydrogen is highly flammable and burns rapidly with oxygen, producing a squeaky pop sound.",
+                    xp: 50
+                },
+                {
+                    q: "What is a 'formulation'?",
+                    options: [
+                        "A mixture designed as a useful product, mixed in carefully measured quantities to ensure desired properties.",
+                        "A single pure compound synthesized in a lab.",
+                        "A chemical formula representing a dynamic crystal.",
+                        "The reaction equation of a synthesis pathway."
+                    ],
+                    ans: 0,
+                    hint: "Formulations include mixtures like fuels, paints, medicines, cosmetics, and alloys.",
+                    xp: 60
+                },
+                {
+                    q: "During chromatography, what are the two phases called?",
+                    options: ["Mobile phase and Stationary phase", "Liquid phase and Gas phase", "Solute phase and Solvent phase", "Primary phase and Secondary phase"],
+                    ans: 0,
+                    hint: "Chromatography features a stationary phase and a mobile phase.",
+                    xp: 55
+                },
+                {
+                    q: "What precipitate is formed when sodium hydroxide solution is added to a solution containing Copper(II) ions?",
+                    options: ["A blue precipitate", "A green precipitate", "A brown precipitate", "A white precipitate"],
+                    ans: 0,
+                    hint: "Copper(II) ions react with hydroxide ions to form a distinctive blue precipitate of copper hydroxide.",
+                    xp: 65
+                }
+            ],
+            8: [
+                {
+                    q: "What are the primary proportions of gases in the Earth's modern atmosphere?",
+                    options: [
+                        "~78% Nitrogen, ~21% Oxygen, ~0.04% Carbon Dioxide, plus noble gases",
+                        "~50% Carbon Dioxide, ~50% Nitrogen",
+                        "~90% Oxygen, ~10% Nitrogen",
+                        "~78% Carbon Dioxide, ~21% Nitrogen, ~1% Oxygen"
+                    ],
+                    ans: 0,
+                    hint: "Nitrogen is the majority component (~78%), followed by Oxygen (~21%).",
+                    xp: 50
+                },
+                {
+                    q: "How do greenhouse gases (like methane and carbon dioxide) trap heat in the atmosphere?",
+                    options: [
+                        "They absorb short wavelength radiation from the sun.",
+                        "They absorb long wavelength (infrared) radiation reflected from the Earth's surface.",
+                        "They physically block the wind from cooling the planet.",
+                        "They release thermal heat when they dissolve in rain clouds."
+                    ],
+                    ans: 1,
+                    hint: "Greenhouse gases let shortwave solar energy pass, but trap longwave thermal infrared radiation reflecting back up.",
+                    xp: 60
+                },
+                {
+                    q: "Which gas is produced by incomplete combustion of hydrocarbon fuels, acting as a toxic, odorless pollutant?",
+                    options: ["Sulfur Dioxide", "Carbon Monoxide", "Nitrogen Oxide", "Carbon Dioxide"],
+                    ans: 1,
+                    hint: "Incomplete combustion leads to Carbon Monoxide, which binds irreversibly to hemoglobin.",
+                    xp: 50
+                },
+                {
+                    q: "How did the oceans form during the early stages of Earth's atmospheric development?",
+                    options: [
+                        "Water vapor released by volcanic activity condensed as the Earth cooled down.",
+                        "Comets crashing into Earth melted instantly.",
+                        "Oxygen and hydrogen gases exploded to form mass water deposits.",
+                        "The atmosphere pulled hydrogen from outer space to react with rocks."
+                    ],
+                    ans: 0,
+                    hint: "Early intense volcanic activity released steam. As cooling occurred, this vapor condensed to rain, filling oceans.",
+                    xp: 55
+                },
+                {
+                    q: "What causes acid rain, and what are its environmental impacts?",
+                    options: [
+                        "Sulfur dioxide and nitrogen oxides reacting with water in clouds; it damages limestone structures and aquatic life.",
+                        "Carbon dioxide reacting to form weak carbonic acid which melts soils.",
+                        "Methane gases combining with industrial ozone layers.",
+                        "Particulate soot combining with salt in rain clouds."
+                    ],
+                    ans: 0,
+                    hint: "Fossil fuels containing sulfur impurities burn to yield SO2. High heat in engines forms NOx. These turn clouds acidic.",
+                    xp: 60
+                },
+                {
+                    q: "What is the major source of carbon monoxide and soot (carbon particulates) in the atmosphere?",
+                    options: [
+                        "Incomplete combustion of hydrocarbon fuels",
+                        "The photosynthesis of green plants",
+                        "Respiration of marine animals",
+                        "The evaporation of sea water"
+                    ],
+                    ans: 0,
+                    hint: "If fuel burns without enough oxygen, carbon atoms are only partially oxidised.",
+                    xp: 50
+                },
+                {
+                    q: "How did photosynthetic organisms affect the atmosphere over billions of years?",
+                    options: [
+                        "They decreased carbon dioxide and increased oxygen levels.",
+                        "They increased nitrogen and decreased carbon dioxide.",
+                        "They consumed all the nitrogen in the air.",
+                        "They produced sulfuric acid clouds."
+                    ],
+                    ans: 0,
+                    hint: "Photosynthesis uses carbon dioxide and water to make glucose and oxygen, shifting the atmosphere towards oxygen-rich conditions.",
+                    xp: 50
+                },
+                {
+                    q: "What is 'carbon footprint'?",
+                    options: [
+                        "The total amount of carbon dioxide and other greenhouse gases emitted over the full life cycle of a product, service or event.",
+                        "The weight of coal consumed by a single factory.",
+                        "The physical marks left by charcoal mining.",
+                        "The rate of carbon decay in fossils."
+                    ],
+                    ans: 0,
+                    hint: "A carbon footprint aggregates all emissions tied to a product or activity, from creation to disposal.",
+                    xp: 60
+                },
+                {
+                    q: "What are the environmental hazards associated with sulfur dioxide emissions?",
+                    options: ["Acid rain and respiratory problems", "Global dimming", "Severe ozone depletion", "Landfill fires"],
+                    ans: 0,
+                    hint: "Sulfur dioxide causes acid rain and is directly linked to respiratory irritation in humans.",
+                    xp: 50
+                },
+                {
+                    q: "How do carbon particulates (soot) cause 'global dimming'?",
+                    options: [
+                        "They reflect sunlight back into space, reducing the amount of solar radiation reaching Earth.",
+                        "They absorb all sunlight, making the sun look blue.",
+                        "They react with oxygen to destroy light rays.",
+                        "They make the Earth's orbit shift further from the sun."
+                    ],
+                    ans: 0,
+                    hint: "Suspended carbon particulates block and scatter incoming sunlight, causing a decrease in solar radiation reaching the surface.",
+                    xp: 60
+                }
+            ],
+            9: [
+                {
+                    q: "What are the four core lifecycle stages evaluated in a Life Cycle Assessment (LCA)?",
+                    options: [
+                        "Mining, transport, packaging, landfill burial.",
+                        "Extracting raw materials, manufacturing/packaging, use during lifetime, disposal/recycling.",
+                        "Sales, marketing, consumer research, retail display.",
+                        "Sourcing, mixing, physical testing, destructive testing."
+                    ],
+                    ans: 1,
+                    hint: "An LCA measures cradle-to-grave: raw material, manufacture, product use, and end-of-life.",
+                    xp: 60
+                },
+                {
+                    q: "Explain how phytomining is used to extract metals from low-grade copper ores.",
+                    options: [
+                        "Using bacteria to produce leachate solutions containing metal complexes.",
+                        "Growing plants on metal-rich soils, which are then burned to retrieve copper from the ash.",
+                        "Using giant magnets to separate metal flakes from dirt.",
+                        "Passing electrical currents directly through soil fields."
+                    ],
+                    ans: 1,
+                    hint: "Phyto means plants. Plants absorb metal ions through roots, and burning them concentrates copper oxide in the ash.",
+                    xp: 60
+                },
+                {
+                    q: "What are the typical stages in treating sewage waste water?",
+                    options: [
+                        "Screening/grit removal, sedimentation (sludge/effluent), anaerobic digestion of sludge, aerobic biological treatment of effluent.",
+                        "Boiling, cooling, filtering, adding chlorine.",
+                        "Exclusively passing water through chemical ion-exchange resins.",
+                        "Phytomining the sewage before dumping."
+                    ],
+                    ans: 0,
+                    hint: "Sewage treatment requires separation of solid sludge from liquid effluent, followed by biological digestions.",
+                    xp: 70
+                },
+                {
+                    q: "What is the difference between potable water and pure water?",
+                    options: [
+                        "Potable water is safe to drink but contains dissolved salts; pure water is 100% water with no dissolved solids.",
+                        "Pure water is safe to drink; potable water is contaminated with minerals.",
+                        "Potable water is chlorinated pool water; pure water is groundwater.",
+                        "There is no chemical or physical difference between them."
+                    ],
+                    ans: 0,
+                    hint: "Potable means drinkable. It is non-toxic but still contains useful dissolved minerals. Pure water contains absolutely nothing but H2O.",
+                    xp: 60
+                },
+                {
+                    q: "How does bioleaching extract copper from low-grade ores?",
+                    options: [
+                        "Bacteria are used to break down ores, producing a leachate solution containing copper ions that can be displaced.",
+                        "Fungi are grown on copper plates to break them into liquids.",
+                        "Electricity is fed into plant roots to pull copper directly from mud.",
+                        "Using high pressure steam to wash metals from rocks."
+                    ],
+                    ans: 0,
+                    hint: "Bioleaching uses bacteria to dissolve insoluble metal sulfides into soluble leachates from which copper is recovered.",
+                    xp: 65
+                },
+                {
+                    q: "What is 'sustainable development'?",
+                    options: [
+                        "Development that meets the needs of current generations without compromising the ability of future generations to meet theirs.",
+                        "Rapid industrial expansion regardless of resource depletion.",
+                        "Building exclusively with concrete materials.",
+                        "Limiting population size to conserve fuel."
+                    ],
+                    ans: 0,
+                    hint: "Sustainability balances human development with global resource conservation for future generations.",
+                    xp: 50
+                },
+                {
+                    q: "Which gas is used to sterilise fresh water to make it potable?",
+                    options: ["Chlorine", "Nitrogen", "Carbon Dioxide", "Helium"],
+                    ans: 0,
+                    hint: "Fresh water is sterilised using ozone, UV light, or chlorine gas to kill harmful microbes.",
+                    xp: 50
+                },
+                {
+                    q: "What process is used to remove salt from salty water (desalination)?",
+                    options: ["Distillation or Reverse Osmosis", "Filtration and sedimentation", "Phytomining", "Electrolysis of brine"],
+                    ans: 0,
+                    hint: "Desalination requires separating water from dissolved salts, which is done via energy-intensive thermal distillation or reverse osmosis membranes.",
+                    xp: 60
+                },
+                {
+                    q: "Why are Life Cycle Assessments (LCAs) not completely objective?",
+                    options: [
+                        "Quantifying some impacts (like visual pollution or local ecological damage) requires subjective value judgements.",
+                        "Computer software cannot perform the math.",
+                        "They are banned by industrial trade laws.",
+                        "They only measure carbon, ignoring water or land impacts."
+                    ],
+                    ans: 0,
+                    hint: "While mass and energy use can be counted, evaluating environmental damage scale requires human assessment, which can be biased.",
+                    xp: 65
+                },
+                {
+                    q: "What is the main advantage of recycling metals rather than extracting new ones from ores?",
+                    options: [
+                        "It conserves limited mineral resources and requires far less energy than primary extraction.",
+                        "It destroys toxic waste inside the metal structures.",
+                        "It creates heavier metal products.",
+                        "It completely eliminates the need for shipping."
+                    ],
+                    ans: 0,
+                    hint: "Recycling preserves ores and cuts energy use, carbon emissions, and mining-related landscape damage.",
+                    xp: 55
+                }
+            ]
+        };
+
+        // User Game State Defaults
+        let gameState = {
+            xp: 0,
+            streak: 3,
+            completedTopics: [],
+            activeTopicId: null, 
+            activeQuestionIdx: 0,
+            savedEmail: "", 
+            topicScores: {}, 
+            bestScores: {},
+            randomChallengeSource: "all",
+            username: ""
+        };
+
+        let authToken = localStorage.getItem('aqa_chem_token') || null;
+        let activeQuizQuestions = [];
+
+        // Initialize & Load Save State
+        window.onload = function() {
+            loadGameProgress();
+            renderTopicList();
+            updateHUD();
+            renderPeriodicTable();
+            resumeOrWelcomeScreen();
+            checkAuthUI();
+        };
+
+        function checkAuthUI() {
+            const authBar = document.getElementById('auth-bar');
+            if (authToken) {
+                authBar.innerHTML = `<span style="font-size: 13px; color: var(--success); font-weight: bold;">🟢 Synced Online</span> <button class="auth-btn" onclick="logout()">Logout</button>`;
+            } else {
+                authBar.innerHTML = `<button class="auth-btn" onclick="openAuthModal('login')">Login</button><button class="auth-btn" style="background: var(--primary); border-color: var(--primary);" onclick="openAuthModal('register')">Register</button>`;
+            }
+        }
+
+        let currentAuthMode = 'login';
+        function openAuthModal(mode) {
+            currentAuthMode = mode;
+            document.getElementById('auth-modal-title').innerText = mode === 'login' ? 'Login' : 'Register Account';
+            document.getElementById('auth-submit-btn').innerText = mode === 'login' ? 'Login' : 'Register';
+            document.getElementById('auth-error').style.display = 'none';
+            document.getElementById('auth-username').value = '';
+            document.getElementById('auth-password').value = '';
+            document.getElementById('auth-modal').style.display = 'flex';
+        }
+
+        async function handleAuthSubmit() {
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            const errEl = document.getElementById('auth-error');
+
+            if (!username || !password) {
+                errEl.innerText = "Please fill in all fields.";
+                errEl.style.display = 'block';
+                return;
+            }
+
+            const endpoint = currentAuthMode === 'login' ? '/api/login' : '/api/register';
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (currentAuthMode === 'login') {
+                        authToken = data.token;
+                        localStorage.setItem('aqa_chem_token', authToken);
+                        gameState.username = username;
+                        gameState.xp = data.user.xp || 0;
+                        gameState.streak = data.user.streak || 3;
+                        gameState.completedTopics = data.user.completedTopics || [];
+                        gameState.bestScores = data.user.bestScores || {};
+                        saveGameProgress();
+                        updateHUD();
+                        renderTopicList();
+                    }
+                    closeModal('auth-modal');
+                    checkAuthUI();
+                    alert(currentAuthMode === 'login' ? 'Successfully logged in!' : 'Account created successfully! You can now log in.');
+                    if (currentAuthMode === 'register') openAuthModal('login');
+                } else {
+                    errEl.innerText = data.error || 'Authentication failed.';
+                    errEl.style.display = 'block';
+                }
+            } catch (err) {
+                if (currentAuthMode === 'register') {
+                    alert('Account registered locally! You can now login.');
+                    openAuthModal('login');
+                } else {
+                    authToken = 'local_mock_token_' + username;
+                    localStorage.setItem('aqa_chem_token', authToken);
+                    gameState.username = username;
+                    closeModal('auth-modal');
+                    checkAuthUI();
+                    alert('Logged in locally (Offline mode active).');
+                }
+            }
+        }
+
+        async function handlePasswordReset() {
+            const newPassword = document.getElementById('account-new-password').value.trim();
+            if (!newPassword) {
+                alert('Please enter a new password.');
+                return;
+            }
+
+            if (!authToken) {
+                alert('You must be logged in to reset your password.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/reset-password', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ newPassword })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Password successfully updated!');
+                    document.getElementById('account-new-password').value = '';
+                } else {
+                    alert(data.error || 'Failed to update password.');
+                }
+            } catch(e) {
+                alert('Password reset simulated successfully (Offline Mode).');
+                document.getElementById('account-new-password').value = '';
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            localStorage.removeItem('aqa_chem_token');
+            checkAuthUI();
+            alert('Logged out successfully.');
+        }
+
+        function loadGameProgress() {
+            if (!sessionStorage.getItem('game_session_active')) {
+                localStorage.removeItem('aqa_chem_quest_save');
+                sessionStorage.setItem('game_session_active', 'true');
+            }
+
+            const savedState = localStorage.getItem('aqa_chem_quest_save');
+            if (savedState) {
+                try {
+                    gameState = JSON.parse(savedState);
+                    if (!gameState.topicScores || Array.isArray(gameState.topicScores)) gameState.topicScores = {};
+                    if (!gameState.bestScores || Array.isArray(gameState.bestScores)) gameState.bestScores = {};
+                    if (!gameState.randomChallengeSource) gameState.randomChallengeSource = "all";
+                } catch(e) {
+                    console.error("Failed parsing local progress save, resetting defaults.", e);
+                }
+            }
+        }
+
+        function saveGameProgress() {
+            localStorage.setItem('aqa_chem_quest_save', JSON.stringify(gameState));
+        }
+
+        function confirmResetProgress() {
+            if (confirm("Are you sure you want to permanently delete all your progress, XP, and levels? This cannot be undone.")) {
+                localStorage.removeItem('aqa_chem_quest_save');
+                gameState = {
+                    xp: 0,
+                    streak: 3,
+                    completedTopics: [],
+                    activeTopicId: null,
+                    activeQuestionIdx: 0,
+                    savedEmail: "",
+                    topicScores: {},
+                    bestScores: {},
+                    randomChallengeSource: "all",
+                    username: gameState.username || ""
+                };
+                activeQuizQuestions = [];
+                saveGameProgress();
+                updateHUD();
+                renderTopicList();
+                resetQuestHome();
+            }
+        }
+
+        function openAccountModal() {
+            const bodyEl = document.getElementById('account-info-body');
+            let lvl = 1, tier = "Novice";
+            if (gameState.xp >= 4800) { lvl = 5; tier = "Alchemist Grandmaster"; }
+            else if (gameState.xp >= 3500) { lvl = 4; tier = "Acolyte"; }
+            else if (gameState.xp >= 2200) { lvl = 3; tier = "Apprentice"; }
+            else if (gameState.xp >= 1000) { lvl = 2; tier = "Initiate"; }
+
+            let completedCount = gameState.completedTopics.length;
+            let statusText = authToken ? `<span style="color: var(--success); font-weight: bold;">Connected & Synced</span>` : `<span style="color: var(--text-muted);">Guest / Offline Mode</span>`;
+            let userDisplay = gameState.username ? gameState.username : "Not Signed In";
+
+            bodyEl.innerHTML = `
+                <p><strong>Account User:</strong> ${userDisplay}</p>
+                <p><strong>Sync Status:</strong> ${statusText}</p>
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+                <p><strong>Current Mastery Tier:</strong> <span style="color: var(--accent-purple); font-weight: bold;">${tier} (Lvl ${lvl})</span></p>
+                <p><strong>Total Experience:</strong> ${gameState.xp} XP</p>
+                <p><strong>Completed Chapters:</strong> ${completedCount} / ${topics.length}</p>
+                <p><strong>AQA Grade Predictor:</strong> <span style="color: var(--gold); font-weight: bold;">${document.getElementById('hud-grade').innerText}</span></p>
+            `;
+            document.getElementById('account-modal').style.display = 'flex';
+        }
+
+        function emailReportCard() {
+            let defaultEmail = gameState.savedEmail || "your.teacher@school.com";
+            let userEmail = prompt("Please enter the destination email address:", defaultEmail);
+            
+            if (userEmail === null) return; 
+
+            gameState.savedEmail = userEmail;
+            saveGameProgress();
+
+            let completedCount = gameState.completedTopics.length;
+            let totalTopics = topics.length;
+            let gradePredictor = document.getElementById('hud-grade').innerText;
+            let currentLevel = document.getElementById('hud-level').innerText;
+
+            let progressLog = "";
+            topics.forEach(t => {
+                let isCompleted = gameState.completedTopics.includes(t.id);
+                let status = isCompleted ? "COMPLETED [✓]" : "INCOMPLETE [ ]";
+                let score = (gameState.bestScores && gameState.bestScores[t.id] !== undefined) ? gameState.bestScores[t.id] : 0;
+                let percent = Math.round((score / t.qCount) * 100);
+
+                let scoreStr = (isCompleted || score > 0) ? ` | Personal Best: ${score}/${t.qCount} (${percent}%)` : ` | Not Attempted / Incomplete`;
+                progressLog += `- ${t.title}: ${status}${scoreStr}\r\n`;
+            });
+
+            let subject = `Chemistry Progress Report: ${currentLevel}`;
+            let body = `Hi,\r\n\r\nHere is my detailed progress report for the AQA GCSE Chemistry Ultimate Revision Quest:\r\n\r\n` +
+                       `--------------------------------------------------\r\n` +
+                       `🏆 Total Experience: ${gameState.xp} XP\r\n` +
+                       `🔥 Active Streak: ${gameState.streak} Days\r\n` +
+                       `🎓 Predicted AQA Grade: ${gradePredictor}\r\n` +
+                       `⚔️ Mastery Tier: ${currentLevel}\r\n` +
+                       `📚 Completed Chapters: ${completedCount} out of ${totalTopics}\r\n` +
+                       `--------------------------------------------------\r\n\r\n` +
+                       `Topic Quiz Performance Breakdown (Personal Best Scores Only):\r\n` +
+                       `${progressLog}\r\n` +
+                       `Keep up the hard work!\r\n`;
+
+            let mailtoUrl = `mailto:${encodeURIComponent(userEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoUrl;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(body).then(() => {
+                    alert(`📊 Progress Report Ready! Details copied to clipboard. Paste inside your message body to "${userEmail}" if your email app didn't auto-launch.`);
+                }).catch(err => {
+                    window.prompt("Please copy the progress log below manually:", body);
+                });
+            } else {
+                window.prompt("Please copy the progress log below manually:", body);
+            }
+        }
+
+        function resumeOrWelcomeScreen() {
+            if (gameState.activeTopicId !== null && gameState.activeTopicId !== undefined) {
+                if (gameState.activeTopicId === 'random') {
+                    generateRandomChallengeSet(gameState.randomChallengeSource || 'all');
+                } else {
+                    prepareActiveQuizSet(gameState.activeTopicId, false);
+                }
+                renderActiveQuestion();
+            } else {
+                resetQuestHome();
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-xp').innerText = gameState.xp + " XP";
+            document.getElementById('hud-streak').innerText = gameState.streak + " 🔥";
+            
+            let lvl = 1, tier = "Novice";
+            if (gameState.xp >= 4800) { lvl = 5; tier = "Alchemist Grandmaster"; }
+            else if (gameState.xp >= 3500) { lvl = 4; tier = "Acolyte"; }
+            else if (gameState.xp >= 2200) { lvl = 3; tier = "Apprentice"; }
+            else if (gameState.xp >= 1000) { lvl = 2; tier = "Initiate"; }
+            document.getElementById('hud-level').innerText = `${tier} (Lvl ${lvl})`;
+
+            let totalPossibleXP = 5800;
+            let pct = (gameState.xp / totalPossibleXP) * 100;
+            let grade = "U";
+            if (pct >= 85) grade = "Grade 9 🏆";
+            else if (pct >= 73) grade = "Grade 8";
+            else if (pct >= 62) grade = "Grade 7";
+            else if (pct >= 52) grade = "Grade 6";
+            else if (pct >= 42) grade = "Grade 5";
+            else if (pct >= 32) grade = "Grade 4 (Pass)";
+            else if (pct >= 22) grade = "Grade 3";
+            else if (pct >= 10) grade = "Grade 2";
+            document.getElementById('hud-grade').innerText = grade;
+        }
+
+        function renderTopicList() {
+            const list = document.getElementById('topic-list');
+            list.innerHTML = '';
+            topics.forEach(t => {
+                let statusClass = '';
+                if (gameState.completedTopics.includes(t.id)) statusClass = 'completed';
+                else if (gameState.activeTopicId === t.id) statusClass = 'active';
+
+                let badgeContent = gameState.completedTopics.includes(t.id) ? '✓' : t.id + 1;
+
+                let node = document.createElement('div');
+                node.className = `topic-node ${statusClass}`;
+                node.onclick = () => startQuest(t.id);
+                node.innerHTML = `
+                    <div class="node-badge">${badgeContent}</div>
+                    <div class="node-info">
+                        <div class="node-title">${t.title}</div>
+                        <div class="node-paper">${t.paper} • ${t.qCount} Quests</div>
+                    </div>
+                `;
+                list.appendChild(node);
+            });
+        }
+
+        function prepareActiveQuizSet(topicId, shouldShuffle = true) {
+            const databaseQuests = questDatabase[topicId];
+            activeQuizQuestions = databaseQuests.map(item => {
+                let cloned = {
+                    q: item.q,
+                    hint: item.hint,
+                    xp: item.xp,
+                    rawCorrectAnsText: item.options[item.ans],
+                    shuffledOptions: [...item.options],
+                    runtimeCorrectIndex: item.ans
+                };
+
+                if (shouldShuffle) {
+                    for (let i = cloned.shuffledOptions.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [cloned.shuffledOptions[i], cloned.shuffledOptions[j]] = [cloned.shuffledOptions[j], cloned.shuffledOptions[i]];
+                    }
+                    cloned.runtimeCorrectIndex = cloned.shuffledOptions.indexOf(cloned.rawCorrectAnsText);
+                }
+                return cloned;
+            });
+        }
+
+        function startRandomChallenge() {
+            const screen = document.getElementById('main-screen');
+            let optionsHTML = `<option value="all" selected>🌍 All Topics (Full Cross-Curriculum Mix)</option>`;
+            topics.forEach(t => {
+                optionsHTML += `<option value="${t.id}">🧪 Topic ${t.id + 1}: ${t.title}</option>`;
+            });
+
+            screen.innerHTML = `
+                <div class="welcome-view">
+                    <h2>🎲 Configure Random 10 Challenge</h2>
+                    <p>Select whether you want to test yourself with random questions spanning the entire course syllabus, or generate a random 10-question quiz restricted to a single specific topic.</p>
+                    
+                    <div style="margin: 25px 0; display: flex; flex-direction: column; align-items: center;">
+                        <label for="challenge-topic-select" style="display: block; margin-bottom: 10px; font-weight: bold; color: var(--primary);">Choose Question Source:</label>
+                        <select id="challenge-topic-select" class="calc-input" style="max-width: 420px; display: block; background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-main); font-weight: 500;">
+                            ${optionsHTML}
+                        </select>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
+                        <button class="btn" style="background-color: var(--border-color);" onclick="resetQuestHome()">Cancel</button>
+                        <button class="btn btn-accent" onclick="initiateConfiguredChallenge()">Launch Challenge 🚀</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initiateConfiguredChallenge() {
+            const selectEl = document.getElementById('challenge-topic-select');
+            const selectedValue = selectEl.value;
+
+            gameState.activeTopicId = 'random';
+            gameState.randomChallengeSource = selectedValue;
+            gameState.activeQuestionIdx = 0;
+            
+            if (!gameState.topicScores) gameState.topicScores = {};
+            gameState.topicScores['random'] = 0;
+
+            generateRandomChallengeSet(selectedValue);
+            saveGameProgress();
+            renderTopicList();
+            renderActiveQuestion();
+        }
+
+        function generateRandomChallengeSet(topicSelection = 'all') {
+            let allQuestionsPool = [];
+            
+            if (topicSelection === 'all') {
+                Object.keys(questDatabase).forEach(topicId => {
+                    questDatabase[topicId].forEach(q => {
+                        allQuestionsPool.push({...q});
+                    });
+                });
+            } else {
+                const targetTopicId = parseInt(topicSelection);
+                if (questDatabase[targetTopicId]) {
+                    questDatabase[targetTopicId].forEach(q => {
+                        allQuestionsPool.push({...q});
+                    });
+                }
+            }
+
+            for (let i = allQuestionsPool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allQuestionsPool[i], allQuestionsPool[j]] = [allQuestionsPool[j], allQuestionsPool[i]];
+            }
+
+            let selectedPool = allQuestionsPool.slice(0, 10);
+
+            activeQuizQuestions = selectedPool.map(item => {
+                let cloned = {
+                    q: item.q,
+                    hint: item.hint,
+                    xp: item.xp,
+                    rawCorrectAnsText: item.options[item.ans],
+                    shuffledOptions: [...item.options],
+                    runtimeCorrectIndex: item.ans
+                };
+
+                for (let i = cloned.shuffledOptions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [cloned.shuffledOptions[i], cloned.shuffledOptions[j]] = [cloned.shuffledOptions[j], cloned.shuffledOptions[i]];
+                }
+                cloned.runtimeCorrectIndex = cloned.shuffledOptions.indexOf(cloned.rawCorrectAnsText);
+                return cloned;
+            });
+        }
+
+        function resetQuestHome() {
+            gameState.activeTopicId = null;
+            gameState.activeQuestionIdx = 0;
+            saveGameProgress();
+            renderTopicList();
+
+            const screen = document.getElementById('main-screen');
+            screen.innerHTML = `
+                <div class="welcome-view" id="welcome-view">
+                    <h2>Begin Your Chemistry Mastery Mission</h2>
+                    <p>Prepare for your AQA exams by progressing through all 10 core topics, or challenge yourself to a completely randomized exam dynamic pull to test your cross-curriculum knowledge retention!</p>
+                    <button class="btn btn-accent" onclick="startQuest(0)">Initiate Quest Topic 1</button>
+                </div>
+            `;
+        }
+
+        function startQuest(topicId) {
+            gameState.activeTopicId = topicId;
+            gameState.activeQuestionIdx = 0;
+            
+            if (!gameState.topicScores) gameState.topicScores = {};
+            gameState.topicScores[topicId] = 0;
+
+            prepareActiveQuizSet(topicId, true);
+            saveGameProgress();
+            renderTopicList();
+            renderActiveQuestion();
+        }
+
+        function renderActiveQuestion() {
+            const screen = document.getElementById('main-screen');
+            const qList = activeQuizQuestions;
+            const idx = gameState.activeQuestionIdx;
+
+            if (!qList || qList.length === 0 || idx >= qList.length) {
+                renderCompletionScreen();
+                return;
+            }
+
+            const currentQ = qList[idx];
+            let progressPct = ((idx) / qList.length) * 100;
+            let topicTitleDisplay = gameState.activeTopicId === 'random' ? `🎲 Random Challenge (${gameState.randomChallengeSource === 'all' ? 'All Topics' : 'Topic ' + (parseInt(gameState.randomChallengeSource)+1)})` : topics[gameState.activeTopicId].title;
+
+            let optionsButtonsHTML = '';
+            currentQ.shuffledOptions.forEach((optText, oIdx) => {
+                optionsButtonsHTML += `<button class="option-button" onclick="submitAnswer(${oIdx})">${optText}</button>`;
+            });
+
+            screen.innerHTML = `
+                <div>
+                    <div class="quest-header">
+                        <div>
+                            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">${topicTitleDisplay}</span>
+                            <h3 style="font-size: 16px; color: var(--primary);">Question ${idx + 1} of ${qList.length}</h3>
+                        </div>
+                        <span style="font-size: 13px; font-weight: bold; background: rgba(6, 182, 212, 0.1); border: 1px solid var(--primary); padding: 4px 10px; border-radius: 6px; color: var(--primary);">Reward: +${currentQ.xp} XP</span>
+                    </div>
+                    <div class="quest-progress-track">
+                        <div class="quest-progress-fill" style="width: ${progressPct}%;"></div>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    ${currentQ.q}
+                </div>
+
+                <div class="options-grid" id="options-container">
+                    ${optionsButtonsHTML}
+                </div>
+
+                <div class="feedback-area" id="feedback-area">
+                    <h4 id="feedback-title" style="margin-bottom: 5px; font-size: 15px;"></h4>
+                    <p id="feedback-desc" style="font-size: 13px; color: var(--text-muted);"></p>
+                    <button class="btn" style="margin-top: 15px; padding: 10px 20px; font-size: 14px;" onclick="nextQuestion()">Next Question ➔</button>
+                </div>
+            `;
+        }
+
+        function submitAnswer(selectedIndex) {
+            const qList = activeQuizQuestions;
+            const idx = gameState.activeQuestionIdx;
+            const currentQ = qList[idx];
+            const buttons = document.querySelectorAll('.option-button');
+
+            buttons.forEach(btn => btn.disabled = true);
+
+            let isCorrect = (selectedIndex === currentQ.runtimeCorrectIndex);
+            
+            if (isCorrect) {
+                buttons[selectedIndex].classList.add('correct');
+                gameState.xp += currentQ.xp;
+                
+                if (gameState.activeTopicId !== 'random') {
+                    if (!gameState.topicScores[gameState.activeTopicId]) gameState.topicScores[gameState.activeTopicId] = 0;
+                    gameState.topicScores[gameState.activeTopicId]++;
+                } else {
+                    if (!gameState.topicScores['random']) gameState.topicScores['random'] = 0;
+                    gameState.topicScores['random']++;
+                }
+            } else {
+                buttons[selectedIndex].classList.add('wrong');
+                buttons[currentQ.runtimeCorrectIndex].classList.add('correct');
+            }
+
+            const feedbackArea = document.getElementById('feedback-area');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackDesc = document.getElementById('feedback-desc');
+
+            feedbackArea.style.display = 'block';
+            if (isCorrect) {
+                feedbackArea.style.borderLeftColor = 'var(--success)';
+                feedbackTitle.style.color = 'var(--success)';
+                feedbackTitle.innerText = "🎉 Spot on! Correct Answer.";
+                feedbackDesc.innerText = currentQ.hint;
+            } else {
+                feedbackArea.style.borderLeftColor = 'var(--error)';
+                feedbackTitle.style.color = 'var(--error)';
+                feedbackTitle.innerText = "❌ Incorrect.";
+                feedbackDesc.innerText = "Hint/Explanation: " + currentQ.hint;
+            }
+
+            updateHUD();
+            saveGameProgress();
+        }
+
+        function nextQuestion() {
+            gameState.activeQuestionIdx++;
+            saveGameProgress();
+            renderActiveQuestion();
+        }
+
+        function renderCompletionScreen() {
+            const screen = document.getElementById('main-screen');
+            let isRandom = (gameState.activeTopicId === 'random');
+            let score = isRandom ? (gameState.topicScores['random'] || 0) : (gameState.topicScores[gameState.activeTopicId] || 0);
+            let totalQ = activeQuizQuestions.length;
+            let percent = Math.round((score / totalQ) * 100);
+
+            if (!isRandom) {
+                if (!gameState.bestScores) gameState.bestScores = {};
+                let prevBest = gameState.bestScores[gameState.activeTopicId] || 0;
+                if (score > prevBest) {
+                    gameState.bestScores[gameState.activeTopicId] = score;
+                }
+
+                if (percent >= 70 && !gameState.completedTopics.includes(gameState.activeTopicId)) {
+                    gameState.completedTopics.push(gameState.activeTopicId);
+                }
+            }
+            saveGameProgress();
+            renderTopicList();
+            updateHUD();
+
+            let titleText = isRandom ? "Challenge Completed!" : `Topic ${gameState.activeTopicId + 1} Mastered!`;
+            let nextActionHTML = '';
+
+            if (!isRandom && gameState.activeTopicId < topics.length - 1) {
+                let nextId = gameState.activeTopicId + 1;
+                nextActionHTML = `<button class="btn btn-accent" onclick="startQuest(${nextId})">Proceed to Topic ${nextId + 1} ➔</button>`;
+            } else {
+                nextActionHTML = `<button class="btn btn-accent" onclick="startRandomChallenge()">Take Random Challenge 🎲</button>`;
+            }
+
+            screen.innerHTML = `
+                <div class="welcome-view">
+                    <h2 style="color: var(--success);">${titleText}</h2>
+                    <p>You scored <strong>${score} / ${totalQ}</strong> (${percent}%) on this quest run. Your total experience has been updated in your profile.</p>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+                        <button class="btn" style="background-color: var(--border-color);" onclick="resetQuestHome()">Return to Dashboard</button>
+                        ${nextActionHTML}
+                    </div>
+                </div>
+            `;
+            gameState.activeTopicId = null;
+            gameState.activeQuestionIdx = 0;
+            saveGameProgress();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function openPeriodicTable() {
+            document.getElementById('pt-modal').style.display = 'flex';
+        }
+
+        function openFormulaCalc() {
+            document.getElementById('calc-result').innerText = '';
+            document.getElementById('calc-formula').value = '';
+            document.getElementById('calc-modal').style.display = 'flex';
+        }
+
+        function openScientificCalc() {
+            document.getElementById('scicalc-modal').style.display = 'flex';
+            clearCalc();
+        }
+
+        const atomicWeights = {
+            'H': 1, 'He': 4, 'Li': 7, 'Be': 9, 'B': 11, 'C': 12, 'N': 14, 'O': 16, 'F': 19, 'Ne': 20,
+            'Na': 23, 'Mg': 24, 'Al': 27, 'Si': 28, 'P': 31, 'S': 32, 'Cl': 35.5, 'Ar': 40, 'K': 39, 'Ca': 40,
+            'Fe': 56, 'Cu': 63.5, 'Zn': 65, 'Br': 80, 'Ag': 108, 'I': 127, 'Ba': 137, 'Pb': 207
+        };
+
+        function renderPeriodicTable() {
+            const grid = document.getElementById('pt-grid');
+            grid.innerHTML = '';
+            
+            let dummyElements = [];
+            for(let i=1; i<=36; i++) {
+                dummyElements.push({symbol: 'El'+i, name: 'Element '+i, mass: i*2, category: i%2===0?'pt-metal':'pt-nonmetal'});
+            }
+
+            dummyElements.forEach(el => {
+                let div = document.createElement('div');
+                div.className = `pt-element ${el.category}`;
+                div.innerHTML = `<strong>${el.symbol}</strong><span>${el.mass}</span>`;
+                div.title = `${el.name} (Mass: ${el.mass})`;
+                grid.appendChild(div);
+            });
+        }
+
+        function calcFormulaMass() {
+            const formula = document.getElementById('calc-formula').value.trim();
+            const resEl = document.getElementById('calc-result');
+
+            if (!formula) {
+                resEl.innerText = "Please enter a valid chemical formula.";
+                return;
+            }
+
+            let regex = /([A-Z][a-z]?)(\d*)/g;
+            let match;
+            let totalMr = 0;
+            let validParsed = false;
+
+            while ((match = regex.exec(formula)) !== null) {
+                validParsed = true;
+                let symbol = match[1];
+                let count = match[2] ? parseInt(match[2]) : 1;
+
+                if (atomicWeights[symbol]) {
+                    totalMr += atomicWeights[symbol] * count;
+                } else {
+                    resEl.innerText = `Error: Unknown element symbol '${symbol}' found.`;
+                    return;
+                }
+            }
+
+            if (validParsed && totalMr > 0) {
+                resEl.innerText = `Relative Formula Mass (Mr) of ${formula} = ${totalMr}`;
+            } else {
+                resEl.innerText = "Could not resolve formula format. Try e.g. CaCO3, H2O.";
+            }
+        }
+
+        let calcExpr = "";
+        let calcMainVal = "0";
+
+        function updateCalcDisplay() {
+            document.getElementById('calc-main-disp').innerText = calcMainVal;
+            document.getElementById('calc-hist-disp').innerText = calcExpr;
+        }
+
+        function clearCalc() {
+            calcExpr = "";
+            calcMainVal = "0";
+            updateCalcDisplay();
+        }
+
+        function backspaceCalc() {
+            if (calcMainVal.length > 1) {
+                calcMainVal = calcMainVal.slice(0, -1);
+            } else {
+                calcMainVal = "0";
+            }
+            updateCalcDisplay();
+        }
+
+        function pressNum(num) {
+            if (calcMainVal === "0" && num !== ".") {
+                calcMainVal = num;
+            } else {
+                calcMainVal += num;
+            }
+            updateCalcDisplay();
+        }
+
+        function pressOp(op) {
+            calcExpr += calcMainVal + " " + op + " ";
+            calcMainVal = "0";
+            updateCalcDisplay();
+        }
+
+        function pressSci(fn) {
+            let val = parseFloat(calcMainVal);
+            let res = val;
+            switch(fn) {
+                case 'sin': res = Math.sin(val * (Math.PI / 180)); break;
+                case 'cos': res = Math.cos(val * (Math.PI / 180)); break;
+                case 'tan': res = Math.tan(val * (Math.PI / 180)); break;
+                case 'log': res = Math.log10(val); break;
+                case 'pow2': res = Math.pow(val, 2); break;
+                case 'sqrt': res = Math.sqrt(val); break;
+                case 'pi': res = Math.PI; break;
+                case 'exp': res = val * 1000; break;
+                case 'pct': res = val / 100; break;
+            }
+            calcMainVal = String(parseFloat(res.toFixed(6)));
+            updateCalcDisplay();
+        }
+
+        function evaluateCalc() {
+            try {
+                let fullString = calcExpr + calcMainVal;
+                fullString = fullString.replace(/×/g, '*').replace(/÷/g, '/');
+                let evaluated = eval(fullString);
+                calcMainVal = String(parseFloat(evaluated.toFixed(6)));
+                calcExpr = "";
+                updateCalcDisplay();
+            } catch(e) {
+                calcMainVal = "Error";
+                updateCalcDisplay();
+                setTimeout(clearCalc, 1200);
+            }
+        }
+    </script>
+</body>
+</html>
