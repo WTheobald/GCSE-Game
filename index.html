@@ -1902,7 +1902,6 @@
         window.onload = function() {
             loadGameProgress();
             renderTopicList();
-            updateHUD();
             renderPeriodicTable();
             resumeOrWelcomeScreen();
             checkAuthUI();
@@ -1915,6 +1914,7 @@
             } else {
                 authBar.innerHTML = `<button class="auth-btn" onclick="openAuthModal('login')">Login</button><button class="auth-btn" style="background: var(--primary); border-color: var(--primary);" onclick="openAuthModal('register')">Register</button>`;
             }
+            updateHUD();
         }
 
         let currentAuthMode = 'login';
@@ -2161,7 +2161,17 @@
         }
 
         function updateHUD() {
-            document.getElementById('hud-xp').innerText = gameState.xp + " XP";
+            const hudXpEl = document.getElementById('hud-xp');
+            if (!authToken) {
+                hudXpEl.style.fontSize = "11px";
+                hudXpEl.style.lineHeight = "1.3";
+                hudXpEl.innerText = "EXP is unavailable. Make an account to gain EXP.";
+            } else {
+                hudXpEl.style.fontSize = "22px";
+                hudXpEl.style.lineHeight = "normal";
+                hudXpEl.innerText = gameState.xp + " XP";
+            }
+
             document.getElementById('hud-streak').innerText = gameState.streak + " 🔥";
             
             let lvl = 1, tier = "Novice";
