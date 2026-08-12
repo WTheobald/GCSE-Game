@@ -613,9 +613,36 @@
             opacity: 0.95;
             box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
         }
+
+        /* Save Status Notification Banner */
+        #save-status-banner {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            display: none;
+            z-index: 2000;
+            animation: fadeInOut 2s ease;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(10px); }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Save Status Indicator -->
+    <div id="save-status-banner">💾 Progress Saved Successfully</div>
 
     <header>
         <h1>AQA GCSE Chemistry Ultimate Revision Quest</h1>
@@ -1899,8 +1926,8 @@
         let activeQuizQuestions = [];
 
         // Initialize & Load Save State
-        window.onload = function() {
-            loadGameProgress();
+        window.onload = async function() {
+            await loadGameProgress();
             renderTopicList();
             renderPeriodicTable();
             resumeOrWelcomeScreen();
@@ -1953,11 +1980,13 @@
                         authToken = data.token;
                         localStorage.setItem('aqa_chem_token', authToken);
                         gameState.username = username;
-                        gameState.xp = data.user.xp || 0;
-                        gameState.streak = data.user.streak || 3;
-                        gameState.completedTopics = data.user.completedTopics || [];
-                        gameState.bestScores = data.user.bestScores || {};
-                        saveGameProgress();
+                        if (data.user) {
+                            gameState.xp = data.user.xp || gameState.xp;
+                            gameState.streak = data.user.streak || gameState.streak;
+                            gameState.completedTopics = data.user.completedTopics || gameState.completedTopics;
+                            gameState.bestScores = data.user.bestScores || gameState.bestScores;
+                        }
+                        await saveGameProgress();
                         updateHUD();
                         renderTopicList();
                     }
@@ -2025,7 +2054,8 @@
             alert('Logged out successfully.');
         }
 
-        function loadGameProgress() {
+        // --- ENHANCED FRONTEND SAVING & CLOUD SYNC LOGIC ---
+        async function loadGameProgress() {
             if (!sessionStorage.getItem('game_session_active')) {
                 localStorage.removeItem('aqa_chem_quest_save');
                 sessionStorage.setItem('game_session_active', 'true');
@@ -2042,10 +2072,61 @@
                     console.error("Failed parsing local progress save, resetting defaults.", e);
                 }
             }
+
+            // If online token exists, pull latest synchronized save state from server
+            if (authToken && !authToken.startsWith('local_mock_token_')) {
+                try {
+                    const res = await fetch('/api/get-progress', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success && data.gameState) {
+                        gameState = { ...gameState, ...data.gameState };
+                        localStorage.setItem('aqa_chem_quest_save', JSON.stringify(gameState));
+                    }
+                } catch (err) {
+                    console.warn("Could not retrieve remote cloud progress. Using local fallback save.", err);
+                }
+            }
         }
 
-        function saveGameProgress() {
+        async function saveGameProgress() {
+            // 1. Persistent Local Storage Saving
             localStorage.setItem('aqa_chem_quest_save', JSON.stringify(gameState));
+
+            // 2. Synchronize with Backend Cloud API if authenticated
+            if (authToken && !authToken.startsWith('local_mock_token_')) {
+                try {
+                    await fetch('/api/save-progress', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify(gameState)
+                    });
+                } catch (err) {
+                    console.warn("Background cloud sync failed. Saved locally successfully.", err);
+                }
+            }
+
+            // 3. Trigger Visual Save Indicator Banner
+            showSaveNotification();
+        }
+
+        function showSaveNotification() {
+            const banner = document.getElementById('save-status-banner');
+            if (!banner) return;
+            banner.style.display = 'block';
+            banner.style.animation = 'none';
+            banner.offsetHeight; // trigger reflow
+            banner.style.animation = 'fadeInOut 2s ease';
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, 2000);
         }
 
         function confirmResetProgress() {
@@ -2269,7 +2350,7 @@
             `;
         }
 
-        function initiateConfiguredChallenge() {
+        async function initiateConfiguredChallenge() {
             const selectEl = document.getElementById('challenge-topic-select');
             const selectedValue = selectEl.value;
 
@@ -2281,7 +2362,7 @@
             gameState.topicScores['random'] = 0;
 
             generateRandomChallengeSet(selectedValue);
-            saveGameProgress();
+            await saveGameProgress();
             renderTopicList();
             renderActiveQuestion();
         }
@@ -2330,10 +2411,10 @@
             });
         }
 
-        function resetQuestHome() {
+        async function resetQuestHome() {
             gameState.activeTopicId = null;
             gameState.activeQuestionIdx = 0;
-            saveGameProgress();
+            await saveGameProgress();
             renderTopicList();
 
             const screen = document.getElementById('main-screen');
@@ -2346,7 +2427,7 @@
             `;
         }
 
-        function startQuest(topicId) {
+        async function startQuest(topicId) {
             gameState.activeTopicId = topicId;
             gameState.activeQuestionIdx = 0;
             
@@ -2354,7 +2435,7 @@
             gameState.topicScores[topicId] = 0;
 
             prepareActiveQuizSet(topicId, true);
-            saveGameProgress();
+            await saveGameProgress();
             renderTopicList();
             renderActiveQuestion();
         }
@@ -2408,7 +2489,7 @@
             `;
         }
 
-        function submitAnswer(selectedIndex) {
+        async function submitAnswer(selectedIndex) {
             const qList = activeQuizQuestions;
             const idx = gameState.activeQuestionIdx;
             const currentQ = qList[idx];
@@ -2452,16 +2533,16 @@
             }
 
             updateHUD();
-            saveGameProgress();
+            await saveGameProgress();
         }
 
-        function nextQuestion() {
+        async function nextQuestion() {
             gameState.activeQuestionIdx++;
-            saveGameProgress();
+            await saveGameProgress();
             renderActiveQuestion();
         }
 
-        function renderCompletionScreen() {
+        async function renderCompletionScreen() {
             const screen = document.getElementById('main-screen');
             let isRandom = (gameState.activeTopicId === 'random');
             let score = isRandom ? (gameState.topicScores['random'] || 0) : (gameState.topicScores[gameState.activeTopicId] || 0);
@@ -2479,7 +2560,7 @@
                     gameState.completedTopics.push(gameState.activeTopicId);
                 }
             }
-            saveGameProgress();
+            await saveGameProgress();
             renderTopicList();
             updateHUD();
 
@@ -2506,7 +2587,7 @@
             `;
             gameState.activeTopicId = null;
             gameState.activeQuestionIdx = 0;
-            saveGameProgress();
+            await saveGameProgress();
         }
 
         function closeModal(modalId) {

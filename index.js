@@ -79,6 +79,30 @@ app.post('/api/reset-password', async (req, res) => {
     }
 });
 
+// Update User Game Progress in MongoDB
+app.post('/api/update-progress', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return res.status(401).json({ success: false, error: 'No token provided.' });
+        
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, JWT_SECRET);
+        
+        const { xp, streak, completedTopics, bestScores } = req.body;
+        
+        await User.findByIdAndUpdate(decoded.userId, {
+            xp,
+            streak,
+            completedTopics,
+            bestScores
+        });
+        
+        res.json({ success: true, message: 'Progress synchronized with MongoDB successfully.' });
+    } catch (err) {
+        res.status(401).json({ success: false, error: 'Unauthorized or invalid token.' });
+    }
+});
+
 // Fallback to index.html for SPA routing
 app.get('/{*splat}', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
