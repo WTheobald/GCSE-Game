@@ -1922,11 +1922,16 @@
             username: ""
         };
 
-        let authToken = localStorage.getItem('aqa_chem_token') || null;
+        // Always start with no account logged in by default
+        let authToken = null;
         let activeQuizQuestions = [];
 
         // Initialize & Load Save State
         window.onload = async function() {
+            // Explicitly clear any stored login token so the page always opens with no user logged in
+            localStorage.removeItem('aqa_chem_token');
+            authToken = null;
+
             await loadGameProgress();
             renderTopicList();
             renderPeriodicTable();
