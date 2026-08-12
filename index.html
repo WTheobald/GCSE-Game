@@ -1922,7 +1922,6 @@
             username: ""
         };
 
-        // Always start with no account logged in by default
         let authToken = null;
         let activeQuizQuestions = [];
 
@@ -1985,7 +1984,6 @@
                         localStorage.setItem('aqa_chem_token', authToken);
                         gameState.username = username;
 
-                        // FIX: Explicitly check for undefined instead of using || (which treats 0 XP as falsy)
                         gameState.activeTopicId = null;
                         gameState.activeQuestionIdx = 0;
                         gameState.topicScores = {};
@@ -2748,3 +2746,4 @@
     </script>
 </body>
 </html>
+```[cite: 22]
