@@ -1204,22 +1204,13 @@
         }
 
         async function saveGameProgress() {
+            // Store the progress locally in the browser[cite: 33, 34]
             localStorage.setItem('aqa_chem_quest_save', JSON.stringify(gameState));
 
-            if (authToken && !authToken.startsWith('local_mock_token_')) {
-                try {
-                    await fetch('/api/save-progress', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${authToken}`
-                        },
-                        body: JSON.stringify(gameState)
-                    });
-                } catch (err) {
-                    console.warn("Background cloud sync failed. Saved locally successfully.", err);
-                }
-            }
+            /* 
+              Cloud synchronization to MongoDB has been disabled 
+              to prevent sending cached data to the database[cite: 33, 34].
+            */
 
             showSaveNotification();
         }
