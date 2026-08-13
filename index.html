@@ -992,6 +992,25 @@
             document.getElementById('auth-error').style.display = 'none';
             document.getElementById('auth-username').value = '';
             document.getElementById('auth-password').value = '';
+
+            // Ensure zero cached data when opening the register modal
+            if (mode === 'register') {
+                localStorage.removeItem('aqa_chem_quest_save');
+                localStorage.removeItem('aqa_chem_token');
+                gameState = {
+                    xp: 0,
+                    streak: 3,
+                    completedTopics: [],
+                    activeTopicId: null,
+                    activeQuestionIdx: 0,
+                    savedEmail: "",
+                    topicScores: {},
+                    bestScores: {},
+                    randomChallengeSource: "all",
+                    username: ""
+                };
+            }
+
             document.getElementById('auth-modal').style.display = 'flex';
         }
 
@@ -1008,7 +1027,7 @@
 
             const endpoint = currentAuthMode === 'login' ? '/api/login' : '/api/register';
             const requestBody = currentAuthMode === 'register' 
-                ? { username, password, xp: 0, streak: 0, completedTopics: [], bestScores: {} } 
+                ? { username, password, xp: 0, streak: 3, completedTopics: [], bestScores: {} } 
                 : { username, password };
 
             try {
@@ -1041,6 +1060,9 @@
                         renderTopicList();
                         resumeOrWelcomeScreen();
                     } else if (currentAuthMode === 'register') {
+                        // Ensure complete cache wipe for new account creation
+                        localStorage.removeItem('aqa_chem_quest_save');
+                        localStorage.removeItem('aqa_chem_token');
                         gameState = {
                             xp: 0,
                             streak: 3,
@@ -1051,9 +1073,11 @@
                             topicScores: {},
                             bestScores: {},
                             randomChallengeSource: "all",
-                            username: ""
+                            username: username
                         };
-                        localStorage.removeItem('aqa_chem_quest_save');
+                        updateHUD();
+                        renderTopicList();
+                        resetQuestHome();
                     }
                     closeModal('auth-modal');
                     checkAuthUI();
@@ -1065,6 +1089,9 @@
                 }
             } catch (err) {
                 if (currentAuthMode === 'register') {
+                    // Force complete cache purge on fallback for new account registration
+                    localStorage.removeItem('aqa_chem_quest_save');
+                    localStorage.removeItem('aqa_chem_token');
                     gameState = {
                         xp: 0,
                         streak: 3,
@@ -1075,9 +1102,8 @@
                         topicScores: {},
                         bestScores: {},
                         randomChallengeSource: "all",
-                        username: ""
+                        username: username
                     };
-                    localStorage.removeItem('aqa_chem_quest_save');
                     updateHUD();
                     renderTopicList();
                     resetQuestHome();
