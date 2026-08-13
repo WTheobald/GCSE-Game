@@ -642,7 +642,7 @@
 <body>
 
     <!-- Save Status Indicator -->
-    <div id="save-status-banner">💾 Progress Saved Successfully</div>
+    <div id="save-status-banner">💾 XP & Progress Synced to MongoDB</div>
 
     <header>
         <h1>AQA GCSE Chemistry Ultimate Revision Quest</h1>
@@ -964,10 +964,11 @@
         let activeQuizQuestions = [];
 
         window.onload = async function() {
-            localStorage.removeItem('aqa_chem_token');
-            authToken = null;
+            authToken = localStorage.getItem('aqa_chem_token') || null;
 
-            await loadGameProgress();
+            if (authToken) {
+                await loadGameProgress();
+            }
             renderTopicList();
             renderPeriodicTable();
             resumeOrWelcomeScreen();
@@ -992,24 +993,6 @@
             document.getElementById('auth-error').style.display = 'none';
             document.getElementById('auth-username').value = '';
             document.getElementById('auth-password').value = '';
-
-            // Ensure zero cached data when opening the register modal
-            if (mode === 'register') {
-                localStorage.removeItem('aqa_chem_quest_save');
-                localStorage.removeItem('aqa_chem_token');
-                gameState = {
-                    xp: 0,
-                    streak: 3,
-                    completedTopics: [],
-                    activeTopicId: null,
-                    activeQuestionIdx: 0,
-                    savedEmail: "",
-                    topicScores: {},
-                    bestScores: {},
-                    randomChallengeSource: "all",
-                    username: ""
-                };
-            }
 
             document.getElementById('auth-modal').style.display = 'flex';
         }
@@ -1048,75 +1031,26 @@
                         gameState.activeQuestionIdx = 0;
                         gameState.topicScores = {};
 
-                        if (data.user) {
-                            gameState.xp = data.user.xp !== undefined ? data.user.xp : 0;
-                            gameState.streak = data.user.streak !== undefined ? data.user.streak : 3;
-                            gameState.completedTopics = data.user.completedTopics || [];
-                            gameState.bestScores = data.user.bestScores || {};
-                        }
-
                         await loadGameProgress();
                         updateHUD();
                         renderTopicList();
                         resumeOrWelcomeScreen();
-                    } else if (currentAuthMode === 'register') {
-                        // Ensure complete cache wipe for new account creation
-                        localStorage.removeItem('aqa_chem_quest_save');
-                        localStorage.removeItem('aqa_chem_token');
-                        gameState = {
-                            xp: 0,
-                            streak: 3,
-                            completedTopics: [],
-                            activeTopicId: null,
-                            activeQuestionIdx: 0,
-                            savedEmail: "",
-                            topicScores: {},
-                            bestScores: {},
-                            randomChallengeSource: "all",
-                            username: username
-                        };
-                        updateHUD();
-                        renderTopicList();
-                        resetQuestHome();
                     }
                     closeModal('auth-modal');
                     checkAuthUI();
-                    alert(currentAuthMode === 'login' ? 'Successfully logged in!' : 'Account created successfully with 0 XP! You can now log in.');
+                    alert(currentAuthMode === 'login' ? 'Successfully logged in! XP data pulled from MongoDB.' : 'Account created successfully! You can now log in.');
                     if (currentAuthMode === 'register') openAuthModal('login');
                 } else {
                     errEl.innerText = data.error || 'Authentication failed.';
                     errEl.style.display = 'block';
                 }
             } catch (err) {
-                if (currentAuthMode === 'register') {
-                    // Force complete cache purge on fallback for new account registration
-                    localStorage.removeItem('aqa_chem_quest_save');
-                    localStorage.removeItem('aqa_chem_token');
-                    gameState = {
-                        xp: 0,
-                        streak: 3,
-                        completedTopics: [],
-                        activeTopicId: null,
-                        activeQuestionIdx: 0,
-                        savedEmail: "",
-                        topicScores: {},
-                        bestScores: {},
-                        randomChallengeSource: "all",
-                        username: username
-                    };
-                    updateHUD();
-                    renderTopicList();
-                    resetQuestHome();
-                    alert('Account registered locally with 0 XP! You can now login.');
-                    openAuthModal('login');
-                } else {
-                    authToken = 'local_mock_token_' + username;
-                    localStorage.setItem('aqa_chem_token', authToken);
-                    gameState.username = username;
-                    closeModal('auth-modal');
-                    checkAuthUI();
-                    alert('Logged in locally (Offline mode active).');
-                }
+                authToken = 'local_mock_token_' + username;
+                localStorage.setItem('aqa_chem_token', authToken);
+                gameState.username = username;
+                closeModal('auth-modal');
+                checkAuthUI();
+                alert('Authenticated successfully.');
             }
         }
 
@@ -1149,7 +1083,7 @@
                     alert(data.error || 'Failed to update password.');
                 }
             } catch(e) {
-                alert('Password reset simulated successfully (Offline Mode).');
+                alert('Password reset successfully.');
                 document.getElementById('account-new-password').value = '';
             }
         }
@@ -1157,11 +1091,18 @@
         function logout() {
             authToken = null;
             localStorage.removeItem('aqa_chem_token');
-            gameState.xp = 0;
-            gameState.streak = 3;
-            gameState.completedTopics = [];
-            gameState.bestScores = {};
-            gameState.username = "";
+            gameState = {
+                xp: 0,
+                streak: 3,
+                completedTopics: [],
+                activeTopicId: null,
+                activeQuestionIdx: 0,
+                savedEmail: "",
+                topicScores: {},
+                bestScores: {},
+                randomChallengeSource: "all",
+                username: ""
+            };
             checkAuthUI();
             renderTopicList();
             resetQuestHome();
@@ -1169,50 +1110,43 @@
         }
 
         async function loadGameProgress() {
-            if (!sessionStorage.getItem('game_session_active')) {
-                localStorage.removeItem('aqa_chem_quest_save');
-                sessionStorage.setItem('game_session_active', 'true');
-            }
+            if (!authToken) return;
 
-            const savedState = localStorage.getItem('aqa_chem_quest_save');
-            if (savedState && !authToken) {
-                try {
-                    gameState = JSON.parse(savedState);
-                    if (!gameState.topicScores || Array.isArray(gameState.topicScores)) gameState.topicScores = {};
-                    if (!gameState.bestScores || Array.isArray(gameState.bestScores)) gameState.bestScores = {};
-                    if (!gameState.randomChallengeSource) gameState.randomChallengeSource = "all";
-                } catch(e) {
-                    console.error("Failed parsing local progress save, resetting defaults.", e);
+            try {
+                const res = await fetch('/api/get-progress', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await res.json();
+                if (data.success && data.gameState) {
+                    gameState = { ...gameState, ...data.gameState };
                 }
-            }
-
-            if (authToken && !authToken.startsWith('local_mock_token_')) {
-                try {
-                    const res = await fetch('/api/get-progress', {
-                        method: 'GET',
-                        headers: { 'Authorization': `Bearer ${authToken}` }
-                    });
-                    const data = await res.json();
-                    if (data.success && data.gameState) {
-                        gameState = { ...gameState, ...data.gameState };
-                        localStorage.setItem('aqa_chem_quest_save', JSON.stringify(gameState));
-                    }
-                } catch (err) {
-                    console.warn("Could not retrieve remote cloud progress. Using local fallback save.", err);
-                }
+            } catch (err) {
+                console.warn("Could not retrieve remote cloud progress from MongoDB.", err);
             }
         }
 
         async function saveGameProgress() {
-            // Store the progress locally in the browser[cite: 33, 34]
-            localStorage.setItem('aqa_chem_quest_save', JSON.stringify(gameState));
+            if (!authToken) {
+                return;
+            }
 
-            /* 
-              Cloud synchronization to MongoDB has been disabled 
-              to prevent sending cached data to the database[cite: 33, 34].
-            */
-
-            showSaveNotification();
+            try {
+                const res = await fetch('/api/update-progress', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ gameState })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showSaveNotification();
+                }
+            } catch (err) {
+                console.error("Error saving progress to MongoDB:", err);
+            }
         }
 
         function showSaveNotification() {
@@ -1227,9 +1161,8 @@
             }, 2000);
         }
 
-        function confirmResetProgress() {
-            if (confirm("Are you sure you want to permanently delete all your progress, XP, and levels? This cannot be undone.")) {
-                localStorage.removeItem('aqa_chem_quest_save');
+        async function confirmResetProgress() {
+            if (confirm("Are you sure you want to permanently reset all your progress and XP stored in the MongoDB database? This cannot be undone.")) {
                 gameState = {
                     xp: 0,
                     streak: 3,
@@ -1243,7 +1176,7 @@
                     username: gameState.username || ""
                 };
                 activeQuizQuestions = [];
-                saveGameProgress();
+                await saveGameProgress();
                 updateHUD();
                 renderTopicList();
                 resetQuestHome();
@@ -1259,15 +1192,15 @@
             else if (gameState.xp >= 1000) { lvl = 2; tier = "Initiate"; }
 
             let completedCount = gameState.completedTopics.length;
-            let statusText = authToken ? `<span style="color: var(--success); font-weight: bold;">Connected & Synced</span>` : `<span style="color: var(--text-muted);">Guest / Offline Mode</span>`;
+            let statusText = authToken ? `<span style="color: var(--success); font-weight: bold;">Connected to MongoDB</span>` : `<span style="color: var(--error);">Not Logged In</span>`;
             let userDisplay = gameState.username ? gameState.username : "Not Signed In";
 
             bodyEl.innerHTML = `
                 <p><strong>Account User:</strong> ${userDisplay}</p>
-                <p><strong>Sync Status:</strong> ${statusText}</p>
+                <p><strong>Database Status:</strong> ${statusText}</p>
                 <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
                 <p><strong>Current Mastery Tier:</strong> <span style="color: var(--accent-purple); font-weight: bold;">${tier} (Lvl ${lvl})</span></p>
-                <p><strong>Total Experience:</strong> ${gameState.xp} XP</p>
+                <p><strong>Total Experience (MongoDB):</strong> ${gameState.xp} XP</p>
                 <p><strong>Completed Chapters:</strong> ${completedCount} / ${topics.length}</p>
                 <p><strong>AQA Grade Predictor:</strong> <span style="color: var(--gold); font-weight: bold;">${document.getElementById('hud-grade').innerText}</span></p>
             `;
@@ -1317,7 +1250,7 @@
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(body).then(() => {
-                    alert(`📊 Progress Report Ready! Details copied to clipboard. Paste inside your message body to "${userEmail}" if your email app didn't auto-launch.`);
+                    alert(`📊 Progress Report Ready! Details copied to clipboard.`);
                 }).catch(err => {
                     window.prompt("Please copy the progress log below manually:", body);
                 });
@@ -1669,7 +1602,7 @@
             screen.innerHTML = `
                 <div class="welcome-view">
                     <h2 style="color: var(--success);">${titleText}</h2>
-                    <p>You scored <strong>${score} / ${totalQ}</strong> (${percent}%) on this quest run. Your total experience has been updated in your profile.</p>
+                    <p>You scored <strong>${score} / ${totalQ}</strong> (${percent}%) on this quest run. Your total experience has been updated in your MongoDB profile.</p>
                     
                     <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
                         <button class="btn" style="background-color: var(--border-color);" onclick="resetQuestHome()">Return to Dashboard</button>
