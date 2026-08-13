@@ -1999,6 +1999,21 @@
                         updateHUD();
                         renderTopicList();
                         resumeOrWelcomeScreen();
+                    } else if (currentAuthMode === 'register') {
+                        // Clear gameState for new account creation
+                        gameState = {
+                            xp: 0,
+                            streak: 3,
+                            completedTopics: [],
+                            activeTopicId: null,
+                            activeQuestionIdx: 0,
+                            savedEmail: "",
+                            topicScores: {},
+                            bestScores: {},
+                            randomChallengeSource: "all",
+                            username: ""
+                        };
+                        localStorage.removeItem('aqa_chem_quest_save');
                     }
                     closeModal('auth-modal');
                     checkAuthUI();
@@ -2010,6 +2025,23 @@
                 }
             } catch (err) {
                 if (currentAuthMode === 'register') {
+                    // Clear gameState for offline registration
+                    gameState = {
+                        xp: 0,
+                        streak: 3,
+                        completedTopics: [],
+                        activeTopicId: null,
+                        activeQuestionIdx: 0,
+                        savedEmail: "",
+                        topicScores: {},
+                        bestScores: {},
+                        randomChallengeSource: "all",
+                        username: ""
+                    };
+                    localStorage.removeItem('aqa_chem_quest_save');
+                    updateHUD();
+                    renderTopicList();
+                    resetQuestHome();
                     alert('Account registered locally! You can now login.');
                     openAuthModal('login');
                 } else {
