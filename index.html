@@ -1008,7 +1008,7 @@
 
             const endpoint = currentAuthMode === 'login' ? '/api/login' : '/api/register';
             const requestBody = currentAuthMode === 'register' 
-                ? { username, password, xp: 0, streak: 3, completedTopics: [], bestScores: {} } 
+                ? { username, password, xp: 0, streak: 0, completedTopics: [], bestScores: {} } 
                 : { username, password };
 
             try {
