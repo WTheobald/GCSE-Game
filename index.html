@@ -483,14 +483,14 @@
         .pt-grid {
             display: grid;
             grid-template-columns: repeat(18, 1fr);
-            gap: 2px;
+            gap: 4px;
             margin-top: 15px;
-            font-size: 8px;
+            font-size: 9px;
         }
 
         .pt-element {
             border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 3px;
+            border-radius: 4px;
             aspect-ratio: 1;
             display: flex;
             flex-direction: column;
@@ -499,10 +499,10 @@
             cursor: help;
         }
 
-        .pt-metal { background-color: rgba(239, 68, 68, 0.2); }
-        .pt-nonmetal { background-color: rgba(59, 130, 246, 0.2); }
-        .pt-noble { background-color: rgba(139, 92, 246, 0.2); }
-        .pt-hal { background-color: rgba(245, 158, 11, 0.2); }
+        .pt-metal { background-color: rgba(239, 68, 68, 0.25); }
+        .pt-nonmetal { background-color: rgba(59, 130, 246, 0.25); }
+        .pt-noble { background-color: rgba(139, 92, 246, 0.25); }
+        .pt-hal { background-color: rgba(245, 158, 11, 0.25); }
 
         /* Formula calculator styling */
         .calc-input {
@@ -720,7 +720,7 @@
             <span class="close-modal" onclick="closeModal('calc-modal')">&times;</span>
             <h2>GCSE Mole & Molar Mass Calculator</h2>
             <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Input a compound chemical formula to instantly resolve its relative formula mass.</p>
-            <input type="text" id="calc-formula" class="calc-input" placeholder="e.g. CaCO3, H2O, Al2S3">
+            <input type="text" id="calc-formula" class="calc-input" placeholder="e.g. CaCO3, H2O, Ca(OH)2, Al2(SO4)3">
             <button class="btn" onclick="calcFormulaMass()">Calculate Molar Mass</button>
             <div id="calc-result" style="margin-top: 20px; font-size: 18px; font-weight: bold; color: var(--primary);"></div>
         </div>
@@ -1043,12 +1043,8 @@
                     errEl.style.display = 'block';
                 }
             } catch (err) {
-                authToken = 'local_mock_token_' + username;
-                localStorage.setItem('aqa_chem_token', authToken);
-                gameState.username = username;
-                closeModal('auth-modal');
-                checkAuthUI();
-                alert('Authenticated successfully.');
+                errEl.innerText = 'Server connection error. Please try again.';
+                errEl.style.display = 'block';
             }
         }
 
@@ -1081,8 +1077,7 @@
                     alert(data.error || 'Failed to update password.');
                 }
             } catch(e) {
-                alert('Password reset successfully.');
-                document.getElementById('account-new-password').value = '';
+                alert('Unable to connect to server to reset password.');
             }
         }
 
@@ -1117,6 +1112,8 @@
                 const data = await res.json();
                 if (data.success && data.gameState) {
                     gameState = { ...gameState, ...data.gameState };
+                    if (!gameState.completedTopics) gameState.completedTopics = [];
+                    if (!gameState.bestScores) gameState.bestScores = {};
                 }
             } catch (err) {
                 console.warn("Could not retrieve remote cloud progress from MongoDB.", err);
@@ -1187,7 +1184,7 @@
             else if (gameState.xp >= 2200) { lvl = 3; tier = "Apprentice"; }
             else if (gameState.xp >= 1000) { lvl = 2; tier = "Initiate"; }
 
-            let completedCount = gameState.completedTopics.length;
+            let completedCount = (gameState.completedTopics || []).length;
             let statusText = authToken ? `<span style="color: var(--success); font-weight: bold;">Connected to MongoDB</span>` : `<span style="color: var(--error);">Not Logged In</span>`;
             let userDisplay = gameState.username ? gameState.username : "Not Signed In";
 
@@ -1248,12 +1245,13 @@
         function renderTopicList() {
             const list = document.getElementById('topic-list');
             list.innerHTML = '';
+            const completed = gameState.completedTopics || [];
             topics.forEach(t => {
                 let statusClass = '';
-                if (gameState.completedTopics.includes(t.id)) statusClass = 'completed';
+                if (completed.includes(t.id)) statusClass = 'completed';
                 else if (gameState.activeTopicId === t.id) statusClass = 'active';
 
-                let badgeContent = gameState.completedTopics.includes(t.id) ? '✓' : t.id + 1;
+                let badgeContent = completed.includes(t.id) ? '✓' : t.id + 1;
 
                 let node = document.createElement('div');
                 node.className = `topic-node ${statusClass}`;
@@ -1270,7 +1268,7 @@
         }
 
         function prepareActiveQuizSet(topicId, shouldShuffle = true) {
-            const databaseQuests = questDatabase[topicId];
+            const databaseQuests = questDatabase[topicId] || [];
             activeQuizQuestions = databaseQuests.map(item => {
                 let cloned = {
                     q: item.q,
@@ -1321,7 +1319,7 @@
 
         async function initiateConfiguredChallenge() {
             const selectEl = document.getElementById('challenge-topic-select');
-            const selectedValue = selectEl.value;
+            const selectedValue = selectEl ? selectEl.value : 'all';
 
             gameState.activeTopicId = 'random';
             gameState.randomChallengeSource = selectedValue;
@@ -1421,7 +1419,12 @@
 
             const currentQ = qList[idx];
             let progressPct = ((idx) / qList.length) * 100;
-            let topicTitleDisplay = gameState.activeTopicId === 'random' ? `🎲 Random Challenge (${gameState.randomChallengeSource === 'all' ? 'All Topics' : 'Topic ' + (parseInt(gameState.randomChallengeSource)+1)})` : topics[gameState.activeTopicId].title;
+            let topicTitleDisplay = "Chemistry Quest";
+            if (gameState.activeTopicId === 'random') {
+                topicTitleDisplay = `🎲 Random Challenge (${gameState.randomChallengeSource === 'all' ? 'All Topics' : 'Topic ' + (parseInt(gameState.randomChallengeSource)+1)})`;
+            } else if (topics[gameState.activeTopicId]) {
+                topicTitleDisplay = topics[gameState.activeTopicId].title;
+            }
 
             let optionsButtonsHTML = '';
             currentQ.shuffledOptions.forEach((optText, oIdx) => {
@@ -1481,7 +1484,9 @@
                 }
             } else {
                 buttons[selectedIndex].classList.add('wrong');
-                buttons[currentQ.runtimeCorrectIndex].classList.add('correct');
+                if (buttons[currentQ.runtimeCorrectIndex]) {
+                    buttons[currentQ.runtimeCorrectIndex].classList.add('correct');
+                }
             }
 
             const feedbackArea = document.getElementById('feedback-area');
@@ -1515,10 +1520,12 @@
             const screen = document.getElementById('main-screen');
             let isRandom = (gameState.activeTopicId === 'random');
             let score = isRandom ? (gameState.topicScores['random'] || 0) : (gameState.topicScores[gameState.activeTopicId] || 0);
-            let totalQ = activeQuizQuestions.length;
+            let totalQ = activeQuizQuestions.length || 10;
             let percent = Math.round((score / totalQ) * 100);
 
-            if (!isRandom) {
+            if (!gameState.completedTopics) gameState.completedTopics = [];
+
+            if (!isRandom && gameState.activeTopicId !== null) {
                 if (!gameState.bestScores) gameState.bestScores = {};
                 let prevBest = gameState.bestScores[gameState.activeTopicId] || 0;
                 if (score > prevBest) {
@@ -1533,10 +1540,10 @@
             renderTopicList();
             updateHUD();
 
-            let titleText = isRandom ? "Challenge Completed!" : `Topic ${gameState.activeTopicId + 1} Mastered!`;
+            let titleText = isRandom ? "Challenge Completed!" : `Topic ${Number(gameState.activeTopicId) + 1} Mastered!`;
             let nextActionHTML = '';
 
-            if (!isRandom && gameState.activeTopicId < topics.length - 1) {
+            if (!isRandom && typeof gameState.activeTopicId === 'number' && gameState.activeTopicId < topics.length - 1) {
                 let nextId = gameState.activeTopicId + 1;
                 nextActionHTML = `<button class="btn btn-accent" onclick="startQuest(${nextId})">Proceed to Topic ${nextId + 1} ➔</button>`;
             } else {
@@ -1581,19 +1588,45 @@
         const atomicWeights = {
             'H': 1, 'He': 4, 'Li': 7, 'Be': 9, 'B': 11, 'C': 12, 'N': 14, 'O': 16, 'F': 19, 'Ne': 20,
             'Na': 23, 'Mg': 24, 'Al': 27, 'Si': 28, 'P': 31, 'S': 32, 'Cl': 35.5, 'Ar': 40, 'K': 39, 'Ca': 40,
-            'Fe': 56, 'Cu': 63.5, 'Zn': 65, 'Br': 80, 'Ag': 108, 'I': 127, 'Ba': 137, 'Pb': 207
+            'Sc': 45, 'Ti': 48, 'V': 51, 'Cr': 52, 'Mn': 55, 'Fe': 56, 'Co': 59, 'Ni': 58.7, 'Cu': 63.5, 'Zn': 65,
+            'Ga': 70, 'Ge': 72.6, 'As': 75, 'Se': 79, 'Br': 80, 'Kr': 84, 'Ag': 108, 'I': 127, 'Ba': 137, 'Pb': 207
         };
 
         function renderPeriodicTable() {
             const grid = document.getElementById('pt-grid');
             grid.innerHTML = '';
             
-            let dummyElements = [];
-            for(let i=1; i<=36; i++) {
-                dummyElements.push({symbol: 'El'+i, name: 'Element '+i, mass: i*2, category: i%2===0?'pt-metal':'pt-nonmetal'});
-            }
+            const realElements = [
+                { symbol: 'H', name: 'Hydrogen', mass: 1, category: 'pt-nonmetal' },
+                { symbol: 'He', name: 'Helium', mass: 4, category: 'pt-noble' },
+                { symbol: 'Li', name: 'Lithium', mass: 7, category: 'pt-metal' },
+                { symbol: 'Be', name: 'Beryllium', mass: 9, category: 'pt-metal' },
+                { symbol: 'B', name: 'Boron', mass: 11, category: 'pt-nonmetal' },
+                { symbol: 'C', name: 'Carbon', mass: 12, category: 'pt-nonmetal' },
+                { symbol: 'N', name: 'Nitrogen', mass: 14, category: 'pt-nonmetal' },
+                { symbol: 'O', name: 'Oxygen', mass: 16, category: 'pt-nonmetal' },
+                { symbol: 'F', name: 'Fluorine', mass: 19, category: 'pt-hal' },
+                { symbol: 'Ne', name: 'Neon', mass: 20, category: 'pt-noble' },
+                { symbol: 'Na', name: 'Sodium', mass: 23, category: 'pt-metal' },
+                { symbol: 'Mg', name: 'Magnesium', mass: 24, category: 'pt-metal' },
+                { symbol: 'Al', name: 'Aluminium', mass: 27, category: 'pt-metal' },
+                { symbol: 'Si', name: 'Silicon', mass: 28, category: 'pt-nonmetal' },
+                { symbol: 'P', name: 'Phosphorus', mass: 31, category: 'pt-nonmetal' },
+                { symbol: 'S', name: 'Sulfur', mass: 32, category: 'pt-nonmetal' },
+                { symbol: 'Cl', name: 'Chlorine', mass: 35.5, category: 'pt-hal' },
+                { symbol: 'Ar', name: 'Argon', mass: 40, category: 'pt-noble' },
+                { symbol: 'K', name: 'Potassium', mass: 39, category: 'pt-metal' },
+                { symbol: 'Ca', name: 'Calcium', mass: 40, category: 'pt-metal' },
+                { symbol: 'Fe', name: 'Iron', mass: 56, category: 'pt-metal' },
+                { symbol: 'Cu', name: 'Copper', mass: 63.5, category: 'pt-metal' },
+                { symbol: 'Zn', name: 'Zinc', mass: 65, category: 'pt-metal' },
+                { symbol: 'Br', name: 'Bromine', mass: 80, category: 'pt-hal' },
+                { symbol: 'Ag', name: 'Silver', mass: 108, category: 'pt-metal' },
+                { symbol: 'I', name: 'Iodine', mass: 127, category: 'pt-hal' },
+                { symbol: 'Pb', name: 'Lead', mass: 207, category: 'pt-metal' }
+            ];
 
-            dummyElements.forEach(el => {
+            realElements.forEach(el => {
                 let div = document.createElement('div');
                 div.className = `pt-element ${el.category}`;
                 div.innerHTML = `<strong>${el.symbol}</strong><span>${el.mass}</span>`;
@@ -1611,28 +1644,63 @@
                 return;
             }
 
-            let regex = /([A-Z][a-z]?)(\d*)/g;
-            let match;
-            let totalMr = 0;
-            let validParsed = false;
-
-            while ((match = regex.exec(formula)) !== null) {
-                validParsed = true;
-                let symbol = match[1];
-                let count = match[2] ? parseInt(match[2]) : 1;
-
-                if (atomicWeights[symbol]) {
-                    totalMr += atomicWeights[symbol] * count;
-                } else {
-                    resEl.innerText = `Error: Unknown element symbol '${symbol}' found.`;
-                    return;
+            function parseFormula(str) {
+                let stack = [{}];
+                let i = 0;
+                while (i < str.length) {
+                    if (str[i] === '(') {
+                        stack.push({});
+                        i++;
+                    } else if (str[i] === ')') {
+                        i++;
+                        let start = i;
+                        while (i < str.length && /\d/.test(str[i])) i++;
+                        let mult = start < i ? parseInt(str.substring(start, i)) : 1;
+                        let top = stack.pop();
+                        let current = stack[stack.length - 1];
+                        for (let elem in top) {
+                            current[elem] = (current[elem] || 0) + top[elem] * mult;
+                        }
+                    } else if (/[A-Z]/.test(str[i])) {
+                        let elem = str[i++];
+                        if (i < str.length && /[a-z]/.test(str[i])) {
+                            elem += str[i++];
+                        }
+                        let start = i;
+                        while (i < str.length && /\d/.test(str[i])) i++;
+                        let mult = start < i ? parseInt(str.substring(start, i)) : 1;
+                        let current = stack[stack.length - 1];
+                        current[elem] = (current[elem] || 0) + mult;
+                    } else {
+                        i++;
+                    }
                 }
+                return stack[0];
             }
 
-            if (validParsed && totalMr > 0) {
-                resEl.innerText = `Relative Formula Mass (Mr) of ${formula} = ${totalMr}`;
-            } else {
-                resEl.innerText = "Could not resolve formula format. Try e.g. CaCO3, H2O.";
+            try {
+                let parsed = parseFormula(formula);
+                let totalMr = 0;
+                let unknownElem = null;
+
+                for (let elem in parsed) {
+                    if (atomicWeights[elem] !== undefined) {
+                        totalMr += atomicWeights[elem] * parsed[elem];
+                    } else {
+                        unknownElem = elem;
+                        break;
+                    }
+                }
+
+                if (unknownElem) {
+                    resEl.innerText = `Error: Unknown element symbol '${unknownElem}' found.`;
+                } else if (totalMr > 0) {
+                    resEl.innerText = `Relative Formula Mass (Mr) of ${formula} = ${totalMr}`;
+                } else {
+                    resEl.innerText = "Could not resolve formula format. Try e.g. CaCO3, H2O, Ca(OH)2.";
+                }
+            } catch (e) {
+                resEl.innerText = "Error parsing formula. Please check formatting.";
             }
         }
 
@@ -1669,8 +1737,17 @@
         }
 
         function pressOp(op) {
-            calcExpr += calcMainVal + " " + op + " ";
-            calcMainVal = "0";
+            if (op === '(' || op === ')') {
+                if (calcMainVal === "0" && op === '(') {
+                    calcExpr += "( ";
+                } else {
+                    calcExpr += calcMainVal + " " + op + " ";
+                    calcMainVal = "0";
+                }
+            } else {
+                calcExpr += calcMainVal + " " + op + " ";
+                calcMainVal = "0";
+            }
             updateCalcDisplay();
         }
 
@@ -1694,10 +1771,10 @@
 
         function evaluateCalc() {
             try {
-                let fullString = calcExpr + calcMainVal;
+                let fullString = calcExpr + (calcMainVal !== "0" ? calcMainVal : "");
                 fullString = fullString.replace(/×/g, '*').replace(/÷/g, '/');
-                let evaluated = eval(fullString);
-                calcMainVal = String(parseFloat(evaluated.toFixed(6)));
+                let evaluated = Function('"use strict"; return (' + fullString + ')')();
+                calcMainVal = String(parseFloat(Number(evaluated).toFixed(6)));
                 calcExpr = "";
                 updateCalcDisplay();
             } catch(e) {
