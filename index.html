@@ -691,7 +691,6 @@
                 <button class="tool-btn" onclick="openPeriodicTable()">📊 Periodic Table</button>
                 <button class="tool-btn" onclick="openFormulaCalc()">🧮 Mass/Mole Calc</button>
                 <button class="tool-btn" onclick="openScientificCalc()">🧮 Sci-Calculator</button>
-                <button class="tool-btn tool-btn-accent" onclick="emailReportCard()">📧 Email My Report</button>
                 <button class="tool-btn tool-btn-danger" onclick="confirmResetProgress()">⚠️ Reset Progress</button>
             </div>
         </div>
@@ -952,8 +951,7 @@
             streak: 3,
             completedTopics: [],
             activeTopicId: null, 
-            activeQuestionIdx: 0,
-            savedEmail: "", 
+            activeQuestionIdx: 0, 
             topicScores: {}, 
             bestScores: {},
             randomChallengeSource: "all",
@@ -1097,7 +1095,6 @@
                 completedTopics: [],
                 activeTopicId: null,
                 activeQuestionIdx: 0,
-                savedEmail: "",
                 topicScores: {},
                 bestScores: {},
                 randomChallengeSource: "all",
@@ -1169,7 +1166,6 @@
                     completedTopics: [],
                     activeTopicId: null,
                     activeQuestionIdx: 0,
-                    savedEmail: "",
                     topicScores: {},
                     bestScores: {},
                     randomChallengeSource: "all",
@@ -1205,58 +1201,6 @@
                 <p><strong>AQA Grade Predictor:</strong> <span style="color: var(--gold); font-weight: bold;">${document.getElementById('hud-grade').innerText}</span></p>
             `;
             document.getElementById('account-modal').style.display = 'flex';
-        }
-
-        function emailReportCard() {
-            let defaultEmail = gameState.savedEmail || "your.teacher@school.com";
-            let userEmail = prompt("Please enter the destination email address:", defaultEmail);
-            
-            if (userEmail === null) return; 
-
-            gameState.savedEmail = userEmail;
-            saveGameProgress();
-
-            let completedCount = gameState.completedTopics.length;
-            let totalTopics = topics.length;
-            let gradePredictor = document.getElementById('hud-grade').innerText;
-            let currentLevel = document.getElementById('hud-level').innerText;
-
-            let progressLog = "";
-            topics.forEach(t => {
-                let isCompleted = gameState.completedTopics.includes(t.id);
-                let status = isCompleted ? "COMPLETED [✓]" : "INCOMPLETE [ ]";
-                let score = (gameState.bestScores && gameState.bestScores[t.id] !== undefined) ? gameState.bestScores[t.id] : 0;
-                let percent = Math.round((score / t.qCount) * 100);
-
-                let scoreStr = (isCompleted || score > 0) ? ` | Personal Best: ${score}/${t.qCount} (${percent}%)` : ` | Not Attempted / Incomplete`;
-                progressLog += `- ${t.title}: ${status}${scoreStr}\r\n`;
-            });
-
-            let subject = `Chemistry Progress Report: ${currentLevel}`;
-            let body = `Hi,\r\n\r\nHere is my detailed progress report for the AQA GCSE Chemistry Ultimate Revision Quest:\r\n\r\n` +
-                       `--------------------------------------------------\r\n` +
-                       `🏆 Total Experience: ${gameState.xp} XP\r\n` +
-                       `🔥 Active Streak: ${gameState.streak} Days\r\n` +
-                       `🎓 Predicted AQA Grade: ${gradePredictor}\r\n` +
-                       `⚔️ Mastery Tier: ${currentLevel}\r\n` +
-                       `📚 Completed Chapters: ${completedCount} out of ${totalTopics}\r\n` +
-                       `--------------------------------------------------\r\n\r\n` +
-                       `Topic Quiz Performance Breakdown (Personal Best Scores Only):\r\n` +
-                       `${progressLog}\r\n` +
-                       `Keep up the hard work!\r\n`;
-
-            let mailtoUrl = `mailto:${encodeURIComponent(userEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.location.href = mailtoUrl;
-
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(body).then(() => {
-                    alert(`📊 Progress Report Ready! Details copied to clipboard.`);
-                }).catch(err => {
-                    window.prompt("Please copy the progress log below manually:", body);
-                });
-            } else {
-                window.prompt("Please copy the progress log below manually:", body);
-            }
         }
 
         function resumeOrWelcomeScreen() {
